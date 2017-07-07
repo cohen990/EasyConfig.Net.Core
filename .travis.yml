@@ -15,4 +15,4 @@ script:
   - cd ../EasyConfig.Net.Core
   - dotnet restore
   - dotnet pack -o . --version-suffix $TRAVIS_BUILD_NUMBER
-  - dotnet nuget push EasyConfig.Net.Core.nupkg -k $NugetApiKey
+  - dotnet nuget push EasyConfig.Net.Core.*.nupkg -k $NugetApiKey -s https://www.nuget.org/
