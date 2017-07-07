@@ -1,7 +1,0 @@
-C:\git\EasyConfig.Net.Core\EasyConfig.Net.Core\bin\Debug\netstandard1.6\EasyConfig.Net.Core.deps.json
-C:\git\EasyConfig.Net.Core\EasyConfig.Net.Core\bin\Debug\netstandard1.6\EasyConfig.Net.Core.dll
-C:\git\EasyConfig.Net.Core\EasyConfig.Net.Core\bin\Debug\netstandard1.6\EasyConfig.Net.Core.pdb
-C:\git\EasyConfig.Net.Core\EasyConfig.Net.Core\obj\Debug\netstandard1.6\EasyConfig.Net.Core.csprojResolveAssemblyReference.cache
-C:\git\EasyConfig.Net.Core\EasyConfig.Net.Core\obj\Debug\netstandard1.6\EasyConfig.Net.Core.AssemblyInfo.cs
-C:\git\EasyConfig.Net.Core\EasyConfig.Net.Core\obj\Debug\netstandard1.6\EasyConfig.Net.Core.dll
-C:\git\EasyConfig.Net.Core\EasyConfig.Net.Core\obj\Debug\netstandard1.6\EasyConfig.Net.Core.pdb
