@@ -75,6 +75,11 @@ namespace EasyConfig
 
             foreach (var pair in split)
             {
+                if (pair.Length != 2)
+                {
+                    continue;
+                }
+
                 argsDict[pair[0]] = pair[1];
             }
 
