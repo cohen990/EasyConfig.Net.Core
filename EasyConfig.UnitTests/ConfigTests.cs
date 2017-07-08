@@ -103,6 +103,12 @@ namespace EasyConfig.UnitTests
         }
 
         [Test]
+        public void Populate_IntRequired_ExtraParameters_DoesNotThrow()
+        {
+            Assert.DoesNotThrow(() => Config.Populate<IntRequired>("number=1", "unexpected-positional-argument"));
+        }
+
+        [Test]
         public void Populate_IntRequired_SetsNumber()
         {
             var num = new Random().Next();
