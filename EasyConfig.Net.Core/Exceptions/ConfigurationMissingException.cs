@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace EasyConfig.Exceptions
 {
-    public class ConfigurationMissingException : Exception
+    public class ConfigurationMissingException : EasyConfigException
     {
         public ConfigurationMissingException(string configKey, Type type, ConfigurationSources sources)
             : base(GetMessage(configKey, type, sources))
