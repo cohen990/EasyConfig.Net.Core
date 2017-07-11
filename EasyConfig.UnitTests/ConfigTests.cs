@@ -123,6 +123,14 @@ namespace EasyConfig.UnitTests
             Assert.Throws<ConfigurationTypeException>(() => Config.Populate<IntRequired>("number=notaninteger"));
         }
 
+        [Test]
+        public void Populate_AliasDefined_GivenValid_Sets()
+        {
+            var config = Config.Populate<AliasDefined>("a=aliased");
+
+            Assert.That(config.Test, Is.EqualTo("aliased"));
+        }
+
         private class UriRequired
         {
             [EnvironmentOrCommandLine("endpoint"), Required]
@@ -156,6 +164,12 @@ namespace EasyConfig.UnitTests
         private class HasDefault
         {
             [Environment("shouldnt_be_in_environment_variables"), Default("defaulttest")]
+            public string Test;
+        }
+
+        private class AliasDefined
+        {
+            [CommandLine("unaliased", "a")]
             public string Test;
         }
     }

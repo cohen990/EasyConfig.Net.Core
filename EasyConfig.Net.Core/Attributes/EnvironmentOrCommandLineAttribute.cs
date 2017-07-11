@@ -2,7 +2,7 @@ namespace EasyConfig.Attributes
 {
     public class EnvironmentOrCommandLineAttribute : ConfigurationAttribute
     {
-        public EnvironmentOrCommandLineAttribute(string key) : base(key, ConfigurationSources.CommandLine | ConfigurationSources.Environment)
+        public EnvironmentOrCommandLineAttribute(string key, string alias = "") : base(key, alias, ConfigurationSources.CommandLine | ConfigurationSources.Environment)
         {
         }
     }

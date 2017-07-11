@@ -26,7 +26,7 @@ namespace EasyConfig
 
                 string value;
 
-                var got = TryGet(argsDict, configurationAttribute.Key, configurationAttribute.ConfigurationSources, out value);
+                var got = TryGet(argsDict, configurationAttribute.Key, configurationAttribute.Alias, configurationAttribute.ConfigurationSources, out value);
 
                 if (!got)
                 {
@@ -48,7 +48,7 @@ namespace EasyConfig
             return parameters;
         }
 
-        private static bool TryGet(Dictionary<string, string> argsDict, string key, ConfigurationSources sources, out string value)
+        private static bool TryGet(Dictionary<string, string> argsDict, string key, string alias, ConfigurationSources sources, out string value)
         {
             bool got = false;
             string val = string.Empty;
@@ -56,12 +56,20 @@ namespace EasyConfig
             if (sources.HasFlag(ConfigurationSources.CommandLine))
             {
                 got = argsDict.TryGetValue(key, out val);
+                if (!got)
+                {
+                    got = argsDict.TryGetValue(alias, out val);
+                }
             }
 
             if (!got && sources.HasFlag(ConfigurationSources.Environment))
             {
                 val = Environment.GetEnvironmentVariable(key);
                 got = !string.IsNullOrWhiteSpace(val);
+                if (!got)
+                {
+                    got = argsDict.TryGetValue(alias, out val);
+                }
             }
 
             value = val;
