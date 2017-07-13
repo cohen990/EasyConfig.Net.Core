@@ -10,7 +10,8 @@ addons:
     - dotnet-dev-1.0.1
 jobs:
   include:
-    - script: test
+    - stage: test
+      script:
       - cd EasyConfig.UnitTests
       - dotnet restore
       - dotnet test
@@ -18,7 +19,7 @@ jobs:
       branches:
         only:
           - master
-      - script:
+      script:
       - cd ../EasyConfig.Net.Core
       - dotnet restore
       - dotnet pack -o . /p:Version=1.0.$TRAVIS_BUILD_NUMBER
