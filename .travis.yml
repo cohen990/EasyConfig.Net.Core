@@ -17,5 +17,5 @@ script:
   - dotnet build -f netstandard1.6 -c Release
   - xbuild ./EasyConfig.Net.Core.sln /p:Configuration=Release /p:TargetFrameworkVersion=v4.6.2
   - dotnet pack --no-build -o . /p:Version=1.0.$TRAVIS_BUILD_NUMBER
-  - if [ -z "$TRAVIS_PULL_REQUEST_BRANCH"]; then travis_terminate 0; fi;
+  - if [ -z "$TRAVIS_PULL_REQUEST_BRANCH"]; then travis_terminate $TRAVIS_TEST_RESULT; fi;
   - dotnet nuget push EasyConfig.Net.Core.*.nupkg -k $NugetApiKey -s https://www.nuget.org/
