@@ -15,12 +15,10 @@ jobs:
       - cd EasyConfig.UnitTests
       - dotnet restore
       - dotnet test
+      - if [ -z "$TRAVIS_PULL_REQUEST_BRANCH"]; then travis_terminate 0; fi;
     - stage: pack
       script:
       - cd EasyConfig.Net.Core
       - dotnet restore
       - dotnet pack -o . /p:Version=1.0.$TRAVIS_BUILD_NUMBER
       - dotnet nuget push EasyConfig.Net.Core.*.nupkg -k $NugetApiKey -s https://www.nuget.org/
-branches:
-  only:
-    - master
