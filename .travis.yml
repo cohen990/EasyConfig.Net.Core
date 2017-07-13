@@ -1,6 +1,8 @@
 language: csharp
 dist: trusty
 sudo: required
+mono:
+  - latest
 addons:
   apt:
     sources:
