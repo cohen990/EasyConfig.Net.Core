@@ -7,5 +7,8 @@ namespace EasyConfig.Exceptions
         public EasyConfigException(string message) : base(message)
         {
         }
+        public EasyConfigException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
     }
 }

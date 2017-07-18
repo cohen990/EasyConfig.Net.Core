@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using EasyConfig.Attributes;
+using EasyConfig.Configuration;
 using EasyConfig.Exceptions;
 
 namespace EasyConfig
@@ -17,35 +18,86 @@ namespace EasyConfig
 
             var argsDict = GetArgsDict(args);
 
+            var allProps = new List<MemberConfiguration>();
+
             foreach (var fieldInfo in typeof(T).GetTypeInfo().DeclaredFields)
             {
-                var defaultAttribute = fieldInfo.GetCustomAttribute<DefaultAttribute>();
-                var required = fieldInfo.GetCustomAttribute<RequiredAttribute>() != null;
-                var configurationAttribute = fieldInfo.GetCustomAttribute<ConfigurationAttribute>();
-                var shouldHideInLog = fieldInfo.GetCustomAttribute<SensitiveInformationAttribute>() != null;
+                allProps.Add(GetMemberConfigurationPropertiesFromField(fieldInfo));
+            }
 
+            foreach (var propertyInfo in typeof(T).GetTypeInfo().DeclaredProperties)
+            {
+                allProps.Add(GetMemberConfigurationPropertiesFromProperty(propertyInfo));
+            }
+
+            foreach(var prop in allProps.Where(x => x != null)) {
                 string value;
 
-                var got = TryGet(argsDict, configurationAttribute.Key, configurationAttribute.Alias, configurationAttribute.ConfigurationSources, out value);
+                var got = TryGet(argsDict,
+                    prop.Key,
+                    prop.Alias,
+                    prop.ConfigurationSources,
+                    out value);
 
                 if (!got)
                 {
-                    if (defaultAttribute == null)
+                    if (prop.HasDefault)
                     {
-                        if (required)
+                        if (prop.IsRequired)
                         {
-                            throw new ConfigurationMissingException(configurationAttribute.Key, fieldInfo.FieldType, configurationAttribute.ConfigurationSources);
+                            throw new ConfigurationMissingException(prop.Key, prop.MemberType, prop.ConfigurationSources);
                         }
                         continue;
                     }
 
-                    value = defaultAttribute.Default.ToString();
+                    value = prop.DefaultValue.ToString();
                 }
 
-                SetValue(fieldInfo, value, configurationAttribute.Key, shouldHideInLog, ref parameters);
+                SetValue(prop, value, ref parameters);
             }
 
             return parameters;
+        }
+
+        private static MemberConfiguration GetMemberConfigurationPropertiesFromProperty(PropertyInfo propertyInfo)
+        {
+            var defaultAttribute = propertyInfo.GetCustomAttribute<DefaultAttribute>();
+            var hasDefaultAttribute = defaultAttribute == null;
+            var defaultValue = defaultAttribute?.Default;
+            var required = propertyInfo.GetCustomAttribute<RequiredAttribute>() != null;
+            var configurationAttribute = propertyInfo.GetCustomAttribute<ConfigurationAttribute>();
+            var shouldHideInLog = propertyInfo.GetCustomAttribute<SensitiveInformationAttribute>() != null;
+
+            return new PropertyConfiguration(
+                defaultValue,
+                hasDefaultAttribute,
+                required,
+                shouldHideInLog,
+                configurationAttribute,
+                propertyInfo);
+        }
+
+        private static MemberConfiguration GetMemberConfigurationPropertiesFromField(FieldInfo fieldInfo)
+        {
+            var configurationAttribute = fieldInfo.GetCustomAttribute<ConfigurationAttribute>();
+            if (configurationAttribute == null)
+            {
+                return null;
+            }
+
+            var defaultAttribute = fieldInfo.GetCustomAttribute<DefaultAttribute>();
+            var hasDefaultAttribute = defaultAttribute == null;
+            var defaultValue = defaultAttribute?.Default;
+            var required = fieldInfo.GetCustomAttribute<RequiredAttribute>() != null;
+            var shouldHideInLog = fieldInfo.GetCustomAttribute<SensitiveInformationAttribute>() != null;
+
+            return new FieldConfiguration(
+                defaultValue,
+                hasDefaultAttribute,
+                required,
+                shouldHideInLog,
+                configurationAttribute,
+                fieldInfo);
         }
 
         private static bool TryGet(Dictionary<string, string> argsDict, string key, string alias, ConfigurationSources sources, out string value)
@@ -94,38 +146,38 @@ namespace EasyConfig
             return argsDict;
         }
 
-        private static void SetValue<T>(FieldInfo field, string value, string key, bool shouldHideInLog, ref T result) where T : new()
+        private static void SetValue<T>(MemberConfiguration member, string value, ref T result) where T : new()
         {
-            if (field.FieldType == typeof(Uri))
+            if (member.MemberType == typeof(Uri))
             {
                 Uri uri;
 
                 if (!Uri.TryCreate(value, UriKind.Absolute, out uri))
                 {
-                    throw new ConfigurationTypeException(key, typeof(Uri));
+                    throw new ConfigurationTypeException(member.Key, typeof(Uri));
                 }
 
-                LogConfigurationValue(key, value, shouldHideInLog);
+                LogConfigurationValue(member.Key, value, member.ShouldHideInLog);
 
-                field.SetValue(result, new Uri(value));
+                member.SetValue(result, new Uri(value));
             }
-            else if (field.FieldType == typeof(int))
+            else if (member.MemberType == typeof(int))
             {
                 int i;
                 if (!int.TryParse(value, out i))
                 {
-                    throw new ConfigurationTypeException(key, typeof(int));
+                    throw new ConfigurationTypeException(member.Key, typeof(int));
                 }
 
-                LogConfigurationValue(key, value, shouldHideInLog);
+                LogConfigurationValue(member.Key, value, member.ShouldHideInLog);
 
-                field.SetValue(result, i);
+                member.SetValue(result, i);
             }
             else
             {
-                LogConfigurationValue(key, value, shouldHideInLog);
+                LogConfigurationValue(member.Key, value, member.ShouldHideInLog);
 
-                field.SetValue(result, value);
+                member.SetValue(result, value);
             }
         }
 
@@ -136,7 +188,12 @@ namespace EasyConfig
                 value = new string('*', value.Length);
             }
 
-            Console.WriteLine($"Using '{value}' for '{key}'");
+            Log($"Using '{value}' for '{key}'");
+        }
+
+        private static void Log(string content)
+        {
+            Console.WriteLine(content);
         }
     }
 }

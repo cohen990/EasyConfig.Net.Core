@@ -132,11 +132,30 @@ namespace EasyConfig.UnitTests
         }
 
         [Test]
-        public void Populate_Property_GivenValid_Sets()
+        public void Populate_PublicGetterSetter_GivenValid_Sets()
         {
             var config = Config.Populate<PublicGetterSetter>("property=value");
 
             Assert.That(config.Test, Is.EqualTo("value"));
+        }
+
+        [Test]
+        public void Populate_PublicGetter_GivenValid_ThrowsConfigurationPropertyException()
+        {
+            Assert.Throws<ConfigurationPropertyException>(() => Config.Populate<PublicGetter>("property=value"));
+        }
+
+        [Test]
+        public void Populate_PublicGetter_GivenValid_HasUsefulExceptionMessage()
+        {
+            try
+            {
+                Config.Populate<PublicGetter>("property=value");
+            }
+            catch (ConfigurationPropertyException result)
+            {
+                Assert.That(result.Message, Contains.Substring("'Test'"));
+            }
         }
 
         private class UriRequired
@@ -185,6 +204,12 @@ namespace EasyConfig.UnitTests
         {
             [CommandLine("property")]
             public string Test { get; set; }
+        }
+
+        private class PublicGetter
+        {
+            [CommandLine("property")]
+            public string Test { get; }
         }
     }
 }
