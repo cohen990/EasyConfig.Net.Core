@@ -131,6 +131,14 @@ namespace EasyConfig.UnitTests
             Assert.That(config.Test, Is.EqualTo("aliased"));
         }
 
+        [Test]
+        public void Populate_Property_GivenValid_Sets()
+        {
+            var config = Config.Populate<PublicGetterSetter>("property=value");
+
+            Assert.That(config.Test, Is.EqualTo("value"));
+        }
+
         private class UriRequired
         {
             [EnvironmentOrCommandLine("endpoint"), Required]
@@ -171,6 +179,12 @@ namespace EasyConfig.UnitTests
         {
             [CommandLine("unaliased", "a")]
             public string Test;
+        }
+
+        private class PublicGetterSetter
+        {
+            [CommandLine("property")]
+            public string Test { get; set; }
         }
     }
 }
