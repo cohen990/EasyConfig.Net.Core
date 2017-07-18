@@ -16,11 +16,6 @@ Easily manage configuration within your .net core application
 	* Environment Variables
 	* Command Line Arguments
 
-### Limitations
-
-* The parameters object you create must use fields, not properties
-
 ### Coming Soon
 
 * Other missing parameter types
-* Support for properties
