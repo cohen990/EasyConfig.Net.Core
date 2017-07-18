@@ -18,48 +18,48 @@ namespace EasyConfig
 
             var argsDict = GetArgsDict(args);
 
-            var allProps = new List<MemberConfiguration>();
+            var allMemberConfigurations = new List<MemberConfiguration>();
 
             foreach (var fieldInfo in typeof(T).GetTypeInfo().DeclaredFields)
             {
-                allProps.Add(GetMemberConfigurationPropertiesFromField(fieldInfo));
+                allMemberConfigurations.Add(GetMemberConfigurationFromField(fieldInfo));
             }
 
             foreach (var propertyInfo in typeof(T).GetTypeInfo().DeclaredProperties)
             {
-                allProps.Add(GetMemberConfigurationPropertiesFromProperty(propertyInfo));
+                allMemberConfigurations.Add(GetMemberConfigurationFromProperty(propertyInfo));
             }
 
-            foreach(var prop in allProps.Where(x => x != null)) {
+            foreach(var memberConfig in allMemberConfigurations.Where(x => x != null)) {
                 string value;
 
                 var got = TryGet(argsDict,
-                    prop.Key,
-                    prop.Alias,
-                    prop.ConfigurationSources,
+                    memberConfig.Key,
+                    memberConfig.Alias,
+                    memberConfig.ConfigurationSources,
                     out value);
 
                 if (!got)
                 {
-                    if (prop.HasDefault)
+                    if (memberConfig.HasDefault)
                     {
-                        if (prop.IsRequired)
+                        if (memberConfig.IsRequired)
                         {
-                            throw new ConfigurationMissingException(prop.Key, prop.MemberType, prop.ConfigurationSources);
+                            throw new ConfigurationMissingException(memberConfig.Key, memberConfig.MemberType, memberConfig.ConfigurationSources);
                         }
                         continue;
                     }
 
-                    value = prop.DefaultValue.ToString();
+                    value = memberConfig.DefaultValue.ToString();
                 }
 
-                SetValue(prop, value, ref parameters);
+                SetValue(memberConfig, value, ref parameters);
             }
 
             return parameters;
         }
 
-        private static MemberConfiguration GetMemberConfigurationPropertiesFromProperty(PropertyInfo propertyInfo)
+        private static MemberConfiguration GetMemberConfigurationFromProperty(PropertyInfo propertyInfo)
         {
             var defaultAttribute = propertyInfo.GetCustomAttribute<DefaultAttribute>();
             var hasDefaultAttribute = defaultAttribute == null;
@@ -77,7 +77,7 @@ namespace EasyConfig
                 propertyInfo);
         }
 
-        private static MemberConfiguration GetMemberConfigurationPropertiesFromField(FieldInfo fieldInfo)
+        private static MemberConfiguration GetMemberConfigurationFromField(FieldInfo fieldInfo)
         {
             var configurationAttribute = fieldInfo.GetCustomAttribute<ConfigurationAttribute>();
             if (configurationAttribute == null)
