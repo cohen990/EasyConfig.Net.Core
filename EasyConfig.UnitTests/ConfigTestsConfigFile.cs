@@ -1,6 +1,4 @@
-using System;
 using EasyConfig.Attributes;
-using EasyConfig.Exceptions;
 using NUnit.Framework;
 #pragma warning disable 649
 
@@ -35,7 +33,7 @@ namespace EasyConfig.UnitTests
 
         private class NestedObject
         {
-            [JsonConfig("NestedObject:InConfigJson")]
+            [JsonConfig("NestedObject.InConfigJson")]
             public string Test;
         }
     }
