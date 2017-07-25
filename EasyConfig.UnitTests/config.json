@@ -1,0 +1,6 @@
+﻿{
+  "InConfigJson": "in-config-json",
+  "NestedObject": {
+    "InConfigJson": "nested-object" 
+  } 
+}
