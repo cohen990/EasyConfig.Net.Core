@@ -5,13 +5,23 @@ using System.Reflection;
 using EasyConfig.Attributes;
 using EasyConfig.Configuration;
 using EasyConfig.Exceptions;
+using Microsoft.Extensions.Configuration;
 
 namespace EasyConfig
 {
     public class Config
     {
+        private static readonly ConfigurationBuilder Builder;
+
+        static Config()
+        {
+            Builder = new ConfigurationBuilder();
+        }
+
         public static T Populate<T>(params string[] args) where T : new()
         {
+            var config = Builder.Build();
+
             var parameters = new T();
 
             if (args == null) throw new ArgumentNullException(nameof(args));
@@ -37,6 +47,7 @@ namespace EasyConfig
                     memberConfig.Key,
                     memberConfig.Alias,
                     memberConfig.ConfigurationSources,
+                    config,
                     out value);
 
                 if (!got)
@@ -100,32 +111,91 @@ namespace EasyConfig
                 fieldInfo);
         }
 
-        private static bool TryGet(Dictionary<string, string> argsDict, string key, string alias, ConfigurationSources sources, out string value)
+        private static bool TryGet(
+            Dictionary<string, string> argsDict, 
+            string key, 
+            string alias, 
+            ConfigurationSources sources, 
+            IConfigurationRoot jsonConfiguration, 
+            out string value)
         {
-            bool got = false;
-            string val = string.Empty;
+            if (TryGetFromCommandLine(argsDict, key, alias, sources, out value))
+            {
+                return true;
+            }
 
+            if (TryGetFromEnvironment(key, sources, out value))
+            {
+                return true;
+            }
+
+            if (TryGetFromConfigFile(jsonConfiguration, key, sources, out value))
+            {
+                return true;
+            }
+
+            value = "";
+            return false;
+        }
+
+        private static bool TryGetFromConfigFile(
+            IConfigurationRoot config,
+            string key,
+            ConfigurationSources sources, 
+            out string value)
+        {
+            if (sources.HasFlag(ConfigurationSources.ConfigFile))
+            {
+                try
+                {
+                    value = config[key];
+                    return true;
+                }
+                catch
+                {
+                }
+            }
+
+            value = "";
+            return false;
+        }
+
+        private static bool TryGetFromCommandLine(
+            Dictionary<string, string> argsDict,
+            string key,
+            string alias, 
+            ConfigurationSources sources,
+            out string val)
+        {
             if (sources.HasFlag(ConfigurationSources.CommandLine))
             {
-                got = argsDict.TryGetValue(key, out val);
-                if (!got)
+                if (argsDict.TryGetValue(key, out val))
                 {
-                    got = argsDict.TryGetValue(alias, out val);
+                    return true;
+                }
+
+                if (argsDict.TryGetValue(alias, out val))
+                {
+                    return true;
                 }
             }
+            val = "";
+            return false;
+        }
 
-            if (!got && sources.HasFlag(ConfigurationSources.Environment))
+        private static bool TryGetFromEnvironment(
+            string key, 
+            ConfigurationSources sources,
+            out string val)
+        {
+            if (sources.HasFlag(ConfigurationSources.Environment))
             {
                 val = Environment.GetEnvironmentVariable(key);
-                got = !string.IsNullOrWhiteSpace(val);
-                if (!got)
-                {
-                    got = argsDict.TryGetValue(alias, out val);
-                }
+                return !string.IsNullOrWhiteSpace(val);
             }
 
-            value = val;
-            return got;
+            val = "";
+            return false;
         }
 
         private static Dictionary<string, string> GetArgsDict(string[] args)
@@ -194,6 +264,11 @@ namespace EasyConfig
         private static void Log(string content)
         {
             Console.WriteLine(content);
+        }
+
+        public static void UseJson(string path)
+        {
+            Builder.AddJsonFile(path);
         }
     }
 }
