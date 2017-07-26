@@ -20,23 +20,26 @@ namespace EasyConfig.Members
             Key = configurationAttribute.Key;
             Alias = configurationAttribute.Alias;
             ConfigurationSources = configurationAttribute.ConfigurationSources;
-            OverrideSource = overrideSource;
+            IsOverridable = overrideSource.HasValue;
+            OverrideSource = overrideSource.GetValueOrDefault();
             OverrideKey = overrideKey;
             MemberType = type;
         }
 
-        public ConfigurationSources? OverrideSource { get; set; }
+        public ConfigurationSources OverrideSource { get; }
+        public bool IsOverridable { get; }
         public string OverrideKey { get; }
 
         public Type MemberType { get; set; }
 
-        public bool HasDefault => DefaultValue != null;
         public bool IsRequired { get; }
         public bool ShouldHideInLog { get; }
         public object DefaultValue { get; }
         public string Key { get; set; }
         public string Alias { get; set; }
         public ConfigurationSources ConfigurationSources { get; set; }
+
+        public bool HasDefault => DefaultValue != null;
 
         public abstract void SetValue(object instance, object value);
     }

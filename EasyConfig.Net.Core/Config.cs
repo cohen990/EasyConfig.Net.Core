@@ -42,12 +42,11 @@ namespace EasyConfig
             ref T parameters) where T : new()
         {
             string value;
-
-            if (member.OverrideSource != null)
+            if (member.IsOverridable)
             {
                 if (TryGet(member.OverrideKey ?? member.Key,
                     "",
-                    member.OverrideSource.Value,
+                    member.OverrideSource,
                     commandLineReader,
                     environmentVariablesReader,
                     jsonFileReader,
@@ -79,7 +78,12 @@ namespace EasyConfig
 
             if (member.IsRequired)
             {
-                throw new ConfigurationMissingException(member.Key, member.MemberType, member.ConfigurationSources);
+                var sources = member.ConfigurationSources;
+                if (member.IsOverridable)
+                {
+                    sources |= member.OverrideSource;
+                }
+                throw new ConfigurationMissingException(member.Key, member.MemberType, sources);
             }
         }
 
