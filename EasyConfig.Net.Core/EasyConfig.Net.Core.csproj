@@ -6,6 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Members\MemberMaker.cs">
+      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="1.1.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="1.1.2" />
   </ItemGroup>

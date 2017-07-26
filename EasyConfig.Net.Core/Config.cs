@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using EasyConfig.Attributes;
-using EasyConfig.Configuration;
+using EasyConfig.ConfigurationReaders;
 using EasyConfig.Exceptions;
+using EasyConfig.Members;
 using Microsoft.Extensions.Configuration;
 
 namespace EasyConfig
@@ -20,133 +18,91 @@ namespace EasyConfig
 
         public static T Populate<T>(params string[] args) where T : new()
         {
-            var config = Builder.Build();
-
+            var commandLineReader = new CommandLineReader(args);
+            var environmentVariablesReader = new EnvironmentVariablesReader();
+            var jsonFileReader = new JsonFileReader(Builder.Build());
+            var memberMaker = new MemberMaker();
             var parameters = new T();
 
-            if (args == null) throw new ArgumentNullException(nameof(args));
-            var commandLineArguments = ProcessCommandLineArguments(args);
+            var allMembers = memberMaker.GetMembers<T>(memberMaker);
 
-            var allMemberConfigurations = new List<MemberConfiguration>();
-
-            foreach (var fieldInfo in typeof(T).GetTypeInfo().DeclaredFields)
+            foreach (var member in allMembers.Where(x => x != null))
             {
-                allMemberConfigurations.Add(GetMemberConfigurationFromField(fieldInfo));
-            }
-
-            foreach (var propertyInfo in typeof(T).GetTypeInfo().DeclaredProperties)
-            {
-                allMemberConfigurations.Add(GetMemberConfigurationFromProperty(propertyInfo));
-            }
-
-            foreach (var memberConfig in allMemberConfigurations.Where(x => x != null))
-            {
-                string value;
-
-                if (memberConfig.OverrideSource != null)
-                {
-                    if (TryGet(commandLineArguments,
-                        memberConfig.OverrideKey ?? memberConfig.Key,
-                        "",
-                        memberConfig.OverrideSource.Value,
-                        config,
-                        out value))
-                    {
-                        SetValue(memberConfig, value, ref parameters);
-                        continue;
-                    }
-                }
-
-                if (TryGet(commandLineArguments,
-                    memberConfig.Key,
-                    memberConfig.Alias,
-                    memberConfig.ConfigurationSources,
-                    config,
-                    out value))
-                {
-                    SetValue(memberConfig, value, ref parameters);
-                    continue;
-                }
-
-                if (memberConfig.HasDefault)
-                {
-                    SetValue(memberConfig, memberConfig.DefaultValue.ToString(), ref parameters);
-                    continue;
-                }
-
-                if (memberConfig.IsRequired)
-                {
-                    throw new ConfigurationMissingException(memberConfig.Key, memberConfig.MemberType, memberConfig.ConfigurationSources);
-                }
+                GetValueForMember(member, commandLineReader, environmentVariablesReader, jsonFileReader, ref parameters);
             }
 
             return parameters;
         }
 
-        private static MemberConfiguration GetMemberConfigurationFromProperty(PropertyInfo propertyInfo)
+        private static void GetValueForMember<T>(
+            Member member,
+            CommandLineReader commandLineReader,
+            EnvironmentVariablesReader environmentVariablesReader,
+            JsonFileReader jsonFileReader,
+            ref T parameters) where T : new()
         {
-            var defaultAttribute = propertyInfo.GetCustomAttribute<DefaultAttribute>();
-            var defaultValue = defaultAttribute?.Default;
-            var required = propertyInfo.GetCustomAttribute<RequiredAttribute>() != null;
-            var configurationAttribute = propertyInfo.GetCustomAttribute<ConfigurationAttribute>();
-            var shouldHideInLog = propertyInfo.GetCustomAttribute<SensitiveInformationAttribute>() != null;
-            var overrideSource = propertyInfo.GetCustomAttribute<OverridenByAttribute>()?.Source;
-            var overrideKey = propertyInfo.GetCustomAttribute<OverridenByAttribute>()?.AlternativeKey;
+            string value;
 
-            return new PropertyConfiguration(
-                defaultValue,
-                required,
-                shouldHideInLog,
-                configurationAttribute,
-                overrideSource,
-                overrideKey,
-                propertyInfo);
-        }
-
-        private static MemberConfiguration GetMemberConfigurationFromField(FieldInfo fieldInfo)
-        {
-            var configurationAttribute = fieldInfo.GetCustomAttribute<ConfigurationAttribute>();
-            if (configurationAttribute == null)
+            if (member.OverrideSource != null)
             {
-                return null;
+                if (TryGet(member.OverrideKey ?? member.Key,
+                    "",
+                    member.OverrideSource.Value,
+                    commandLineReader,
+                    environmentVariablesReader,
+                    jsonFileReader,
+                    out value))
+                {
+                    SetValue(member, value, ref parameters);
+                    return;
+                }
             }
 
-            var defaultAttribute = fieldInfo.GetCustomAttribute<DefaultAttribute>();
-            var defaultValue = defaultAttribute?.Default;
-            var required = fieldInfo.GetCustomAttribute<RequiredAttribute>() != null;
-            var shouldHideInLog = fieldInfo.GetCustomAttribute<SensitiveInformationAttribute>() != null;
-            var overrideSource = fieldInfo.GetCustomAttribute<OverridenByAttribute>()?.Source;
-            var overrideKey = fieldInfo.GetCustomAttribute<OverridenByAttribute>()?.AlternativeKey;
+            if (TryGet(
+                member.Key,
+                member.Alias,
+                member.ConfigurationSources,
+                commandLineReader,
+                environmentVariablesReader,
+                jsonFileReader,
+                out value))
+            {
+                SetValue(member, value, ref parameters);
+                return;
+            }
 
-            return new FieldConfiguration(
-                defaultValue,
-                required,
-                shouldHideInLog,
-                configurationAttribute,
-                overrideSource,
-                overrideKey,
-                fieldInfo);
+            if (member.HasDefault)
+            {
+                SetValue(member, member.DefaultValue.ToString(), ref parameters);
+                return;
+            }
+
+            if (member.IsRequired)
+            {
+                throw new ConfigurationMissingException(member.Key, member.MemberType, member.ConfigurationSources);
+            }
         }
 
         private static bool TryGet(
-            Dictionary<string, string> commandLineArgs, 
-            string key, 
-            string alias, 
-            ConfigurationSources sources, 
-            IConfigurationRoot jsonConfiguration, 
+            string key,
+            string alias,
+            ConfigurationSources sources,
+            CommandLineReader commandLineReader,
+            EnvironmentVariablesReader environmentVariablesReader,
+            JsonFileReader jsonFileReader,
             out string value)
         {
-            if (TryGetFromCommandLine(commandLineArgs, key, alias, sources, out value))
+            if (commandLineReader.TryGet(key, alias, sources, out value))
             {
                 return true;
             }
 
-            if (TryGetFromEnvironment(key, sources, out value))
+            if (environmentVariablesReader.TryGet(key, alias, sources, out value))
             {
                 return true;
             }
 
-            if (TryGetFromConfigFile(jsonConfiguration, key, sources, out value))
+            if (jsonFileReader.TryGet(key, alias, sources, out value))
             {
                 return true;
             }
@@ -155,85 +111,7 @@ namespace EasyConfig
             return false;
         }
 
-        private static bool TryGetFromConfigFile(
-            IConfigurationRoot config,
-            string key,
-            ConfigurationSources sources, 
-            out string value)
-        {
-            if (sources.HasFlag(ConfigurationSources.ConfigFile))
-            {
-                try
-                {
-                    value = config[key];
-                    return true;
-                }
-                catch
-                {
-                }
-            }
-
-            value = "";
-            return false;
-        }
-
-        private static bool TryGetFromCommandLine(
-            Dictionary<string, string> commandLineArgs,
-            string key,
-            string alias, 
-            ConfigurationSources sources,
-            out string val)
-        {
-            if (sources.HasFlag(ConfigurationSources.CommandLine))
-            {
-                if (commandLineArgs.TryGetValue(key, out val))
-                {
-                    return true;
-                }
-
-                if (commandLineArgs.TryGetValue(alias, out val))
-                {
-                    return true;
-                }
-            }
-            val = "";
-            return false;
-        }
-
-        private static bool TryGetFromEnvironment(
-            string key, 
-            ConfigurationSources sources,
-            out string val)
-        {
-            if (sources.HasFlag(ConfigurationSources.Environment))
-            {
-                val = Environment.GetEnvironmentVariable(key);
-                return !string.IsNullOrWhiteSpace(val);
-            }
-
-            val = "";
-            return false;
-        }
-
-        private static Dictionary<string, string> ProcessCommandLineArguments(string[] args)
-        {
-            var split = args.Select(x => x.Split('='));
-            var dict = new Dictionary<string, string>();
-
-            foreach (var pair in split)
-            {
-                if (pair.Length != 2)
-                {
-                    continue;
-                }
-
-                dict[pair[0]] = pair[1];
-            }
-
-            return dict;
-        }
-
-        private static void SetValue<T>(MemberConfiguration member, string value, ref T result) where T : new()
+        private static void SetValue<T>(Member member, string value, ref T result) where T : new()
         {
             if (member.MemberType == typeof(Uri))
             {
