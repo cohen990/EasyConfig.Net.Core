@@ -11,17 +11,19 @@ namespace EasyConfig.Configuration
 
         public PropertyConfiguration(
             object defaultValue,
-            bool hasDefault,
             bool isRequired,
             bool shouldHideInLog,
             ConfigurationAttribute configurationAttribute,
+            ConfigurationSources? overrideSource,
+            string overrideKey,
             PropertyInfo propertyInfo)
             : base(
                 defaultValue,
-                hasDefault,
                 isRequired,
                 shouldHideInLog,
                 configurationAttribute,
+                overrideSource,
+                overrideKey,
                 propertyInfo.PropertyType)
         {
             _propertyInfo = propertyInfo;
