@@ -1,9 +1,12 @@
+using System;
+
 namespace EasyConfig
 {
+    [Flags]
     public enum ConfigurationSources
     {
         Environment,
         CommandLine,
-        ConfigFile
+        JsonConfig
     }
 }

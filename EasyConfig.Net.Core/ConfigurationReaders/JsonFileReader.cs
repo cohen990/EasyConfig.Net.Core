@@ -14,12 +14,12 @@ namespace EasyConfig.ConfigurationReaders
 
         public bool TryGet(string key, string alias, ConfigurationSources sources, out string value)
         {
-            if (sources.HasFlag(ConfigurationSources.ConfigFile))
+            if (sources.HasFlag(ConfigurationSources.JsonConfig))
             {
                 try
                 {
                     value = _config[key];
-                    return true;
+                    return !string.IsNullOrWhiteSpace(value);
                 }
                 catch
                 {

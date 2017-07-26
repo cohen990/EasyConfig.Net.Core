@@ -1,5 +1,6 @@
 using System;
 using EasyConfig.Attributes;
+using EasyConfig.Exceptions;
 using NUnit.Framework;
 #pragma warning disable 649
 
@@ -35,6 +36,22 @@ namespace EasyConfig.UnitTests
             Assert.That(config.Test, Is.EqualTo("overriden"));
         }
 
+        [Test]
+        public void Populate_Required_Missing_Throws()
+        {
+            try
+            {
+                var config = Config.Populate<Required>();
+                throw new AssertionException("Config.Populate did not throw a ConfigurationMissingException");
+            }
+            catch (ConfigurationMissingException result)
+            {
+                Assert.That(result.Message.Contains("CommandLine"), $"'{result.Message}' did not contain 'CommandLine'");
+                Assert.That(result.Message.Contains("JsonConfig"), $"'{result.Message}' did not contain 'JsonConfig'");
+            }
+
+        }
+
         private class IsOverridden
         {
             [JsonConfig("InConfigJson")]
@@ -46,6 +63,13 @@ namespace EasyConfig.UnitTests
         {
             [JsonConfig("InConfigJson")]
             [OverriddenBy(ConfigurationSources.CommandLine, "alternative_key")]
+            public string Test { get; set; }
+        }
+
+        private class Required
+        {
+            [JsonConfig("MissingConfiguration"), Required]
+            [OverriddenBy(ConfigurationSources.CommandLine)]
             public string Test { get; set; }
         }
     }
