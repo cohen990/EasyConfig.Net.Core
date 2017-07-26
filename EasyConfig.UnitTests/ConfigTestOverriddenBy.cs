@@ -38,14 +38,14 @@ namespace EasyConfig.UnitTests
         private class IsOverridden
         {
             [JsonConfig("InConfigJson")]
-            [OverridenBy(ConfigurationSources.CommandLine)]
+            [OverriddenBy(ConfigurationSources.CommandLine)]
             public string Test { get; set; }
         }
 
         private class AlternativeKey
         {
             [JsonConfig("InConfigJson")]
-            [OverridenBy(ConfigurationSources.CommandLine, "alternative_key")]
+            [OverriddenBy(ConfigurationSources.CommandLine, "alternative_key")]
             public string Test { get; set; }
         }
     }
