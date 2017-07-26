@@ -51,11 +51,11 @@ namespace EasyConfig.Net.Sample
         public bool Aliased { get; set; }
 
         [JsonConfig("Overridable")]
-        [OverridenBy(ConfigurationSources.CommandLine)]
+        [OverriddenBy(ConfigurationSources.CommandLine)]
         public bool Overridable { get; set; }
 
         [JsonConfig("OverridableAlternativeKey")]
-        [OverridenBy(ConfigurationSources.CommandLine, "alternative-key")]
+        [OverriddenBy(ConfigurationSources.CommandLine, "alternative-key")]
         public bool OverridableAlternativeKey { get; set; }
     }
 }

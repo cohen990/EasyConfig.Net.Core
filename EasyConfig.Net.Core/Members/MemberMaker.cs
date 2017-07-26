@@ -13,8 +13,8 @@ namespace EasyConfig.Members
             var required = propertyInfo.GetCustomAttribute<RequiredAttribute>() != null;
             var configurationAttribute = propertyInfo.GetCustomAttribute<ConfigurationAttribute>();
             var shouldHideInLog = propertyInfo.GetCustomAttribute<SensitiveInformationAttribute>() != null;
-            var overrideSource = propertyInfo.GetCustomAttribute<OverridenByAttribute>()?.Source;
-            var overrideKey = propertyInfo.GetCustomAttribute<OverridenByAttribute>()?.AlternativeKey;
+            var overrideSource = propertyInfo.GetCustomAttribute<OverriddenByAttribute>()?.Source;
+            var overrideKey = propertyInfo.GetCustomAttribute<OverriddenByAttribute>()?.AlternativeKey;
 
             return new Property(
                 defaultValue,
@@ -38,8 +38,8 @@ namespace EasyConfig.Members
             var defaultValue = defaultAttribute?.Default;
             var required = fieldInfo.GetCustomAttribute<RequiredAttribute>() != null;
             var shouldHideInLog = fieldInfo.GetCustomAttribute<SensitiveInformationAttribute>() != null;
-            var overrideSource = fieldInfo.GetCustomAttribute<OverridenByAttribute>()?.Source;
-            var overrideKey = fieldInfo.GetCustomAttribute<OverridenByAttribute>()?.AlternativeKey;
+            var overrideSource = fieldInfo.GetCustomAttribute<OverriddenByAttribute>()?.Source;
+            var overrideKey = fieldInfo.GetCustomAttribute<OverriddenByAttribute>()?.AlternativeKey;
 
             return new Field(
                 defaultValue,
