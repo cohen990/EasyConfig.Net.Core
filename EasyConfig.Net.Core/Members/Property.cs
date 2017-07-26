@@ -3,13 +3,13 @@ using System.Reflection;
 using EasyConfig.Attributes;
 using EasyConfig.Exceptions;
 
-namespace EasyConfig.Configuration
+namespace EasyConfig.Members
 {
-    public class PropertyConfiguration : MemberConfiguration
+    public class Property : Member
     {
         private readonly PropertyInfo _propertyInfo;
 
-        public PropertyConfiguration(
+        public Property(
             object defaultValue,
             bool isRequired,
             bool shouldHideInLog,

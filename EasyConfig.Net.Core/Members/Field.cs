@@ -1,14 +1,13 @@
-﻿using System;
-using System.Reflection;
+﻿using System.Reflection;
 using EasyConfig.Attributes;
 
-namespace EasyConfig.Configuration
+namespace EasyConfig.Members
 {
-    public class FieldConfiguration : MemberConfiguration
+    public class Field : Member
     {
         private readonly FieldInfo _fieldInfo;
 
-        public FieldConfiguration(
+        public Field(
             object defaultValue,
             bool isRequired,
             bool shouldHideInLog,
