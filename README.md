@@ -30,6 +30,8 @@ Easily manage configuration within your .net core application
 * Configuration Sources
 	* Environment Variables
 	* Command Line Arguments
+	* Json Config files
+* Overridable Configuration
 
 ### Coming Soon
 

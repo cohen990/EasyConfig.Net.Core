@@ -1,6 +1,8 @@
 ﻿{
   "InConfigJson": "in-config-json",
   "NestedObject": {
-    "InConfigJson": "nested-object" 
-  } 
+    "InConfigJson": "nested-object"
+  },
+  "Overridable": "can-be-overridden",
+  "OverridableAlternativeKey": "can-be-overridden-with-alternative-key"
 }

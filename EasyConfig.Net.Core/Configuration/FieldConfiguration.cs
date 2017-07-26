@@ -10,17 +10,19 @@ namespace EasyConfig.Configuration
 
         public FieldConfiguration(
             object defaultValue,
-            bool hasDefault,
             bool isRequired,
             bool shouldHideInLog,
             ConfigurationAttribute configurationAttribute,
-            FieldInfo fieldInfo) 
+            ConfigurationSources? overrideSource,
+            string overrideKey,
+            FieldInfo fieldInfo)
             : base(
                   defaultValue,
-                  hasDefault,
                   isRequired,
                   shouldHideInLog,
                   configurationAttribute,
+                  overrideSource,
+                  overrideKey,
                   fieldInfo.FieldType)
         {
             _fieldInfo = fieldInfo;

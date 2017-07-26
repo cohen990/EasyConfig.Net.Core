@@ -23,10 +23,10 @@ namespace EasyConfig.Net.Sample
     internal class SampleConfig
     {
         // Can be supplied by environment or command line. If not supplied, throws a ConfigurationMissingException
-        [EnvironmentOrCommandLine("uri_required"), Required]
+        [CommandLine("uri_required"), Required]
         public Uri Endpoint1;
 
-        [EnvironmentOrCommandLine("uri_not_required")]
+        [Environment("uri_not_required")]
         public Uri Endpoint2;
 
         [CommandLine("string_required_commandline"), Required]
@@ -49,5 +49,13 @@ namespace EasyConfig.Net.Sample
 
         [CommandLine("aliased", "a")]
         public bool Aliased { get; set; }
+
+        [JsonConfig("Overridable")]
+        [OverridenBy(ConfigurationSources.CommandLine)]
+        public bool Overridable { get; set; }
+
+        [JsonConfig("OverridableAlternativeKey")]
+        [OverridenBy(ConfigurationSources.CommandLine, "alternative-key")]
+        public bool OverridableAlternativeKey { get; set; }
     }
 }
