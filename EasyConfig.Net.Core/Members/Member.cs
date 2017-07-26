@@ -1,11 +1,11 @@
 ﻿using System;
 using EasyConfig.Attributes;
 
-namespace EasyConfig.Configuration
+namespace EasyConfig.Members
 {
-    public abstract class MemberConfiguration
+    public abstract class Member
     {
-        protected MemberConfiguration(
+        protected Member(
             object defaultValue,
             bool isRequired,
             bool shouldHideInLog,
