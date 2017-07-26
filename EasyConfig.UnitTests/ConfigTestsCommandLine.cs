@@ -1,4 +1,3 @@
-using System;
 using EasyConfig.Attributes;
 using EasyConfig.Exceptions;
 using NUnit.Framework;

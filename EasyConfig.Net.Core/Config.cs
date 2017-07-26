@@ -25,8 +25,7 @@ namespace EasyConfig
             var parameters = new T();
 
             if (args == null) throw new ArgumentNullException(nameof(args));
-
-            var argsDict = GetArgsDict(args);
+            var commandLineArguments = ProcessCommandLineArguments(args);
 
             var allMemberConfigurations = new List<MemberConfiguration>();
 
@@ -40,31 +39,45 @@ namespace EasyConfig
                 allMemberConfigurations.Add(GetMemberConfigurationFromProperty(propertyInfo));
             }
 
-            foreach(var memberConfig in allMemberConfigurations.Where(x => x != null)) {
+            foreach (var memberConfig in allMemberConfigurations.Where(x => x != null))
+            {
                 string value;
 
-                var got = TryGet(argsDict,
+                if (memberConfig.OverrideSource != null)
+                {
+                    if (TryGet(commandLineArguments,
+                        memberConfig.OverrideKey ?? memberConfig.Key,
+                        "",
+                        memberConfig.OverrideSource.Value,
+                        config,
+                        out value))
+                    {
+                        SetValue(memberConfig, value, ref parameters);
+                        continue;
+                    }
+                }
+
+                if (TryGet(commandLineArguments,
                     memberConfig.Key,
                     memberConfig.Alias,
                     memberConfig.ConfigurationSources,
                     config,
-                    out value);
-
-                if (!got)
+                    out value))
                 {
-                    if (memberConfig.HasDefault)
-                    {
-                        if (memberConfig.IsRequired)
-                        {
-                            throw new ConfigurationMissingException(memberConfig.Key, memberConfig.MemberType, memberConfig.ConfigurationSources);
-                        }
-                        continue;
-                    }
-
-                    value = memberConfig.DefaultValue.ToString();
+                    SetValue(memberConfig, value, ref parameters);
+                    continue;
                 }
 
-                SetValue(memberConfig, value, ref parameters);
+                if (memberConfig.HasDefault)
+                {
+                    SetValue(memberConfig, memberConfig.DefaultValue.ToString(), ref parameters);
+                    continue;
+                }
+
+                if (memberConfig.IsRequired)
+                {
+                    throw new ConfigurationMissingException(memberConfig.Key, memberConfig.MemberType, memberConfig.ConfigurationSources);
+                }
             }
 
             return parameters;
@@ -73,18 +86,20 @@ namespace EasyConfig
         private static MemberConfiguration GetMemberConfigurationFromProperty(PropertyInfo propertyInfo)
         {
             var defaultAttribute = propertyInfo.GetCustomAttribute<DefaultAttribute>();
-            var hasDefaultAttribute = defaultAttribute == null;
             var defaultValue = defaultAttribute?.Default;
             var required = propertyInfo.GetCustomAttribute<RequiredAttribute>() != null;
             var configurationAttribute = propertyInfo.GetCustomAttribute<ConfigurationAttribute>();
             var shouldHideInLog = propertyInfo.GetCustomAttribute<SensitiveInformationAttribute>() != null;
+            var overrideSource = propertyInfo.GetCustomAttribute<OverridenByAttribute>()?.Source;
+            var overrideKey = propertyInfo.GetCustomAttribute<OverridenByAttribute>()?.AlternativeKey;
 
             return new PropertyConfiguration(
                 defaultValue,
-                hasDefaultAttribute,
                 required,
                 shouldHideInLog,
                 configurationAttribute,
+                overrideSource,
+                overrideKey,
                 propertyInfo);
         }
 
@@ -97,29 +112,31 @@ namespace EasyConfig
             }
 
             var defaultAttribute = fieldInfo.GetCustomAttribute<DefaultAttribute>();
-            var hasDefaultAttribute = defaultAttribute == null;
             var defaultValue = defaultAttribute?.Default;
             var required = fieldInfo.GetCustomAttribute<RequiredAttribute>() != null;
             var shouldHideInLog = fieldInfo.GetCustomAttribute<SensitiveInformationAttribute>() != null;
+            var overrideSource = fieldInfo.GetCustomAttribute<OverridenByAttribute>()?.Source;
+            var overrideKey = fieldInfo.GetCustomAttribute<OverridenByAttribute>()?.AlternativeKey;
 
             return new FieldConfiguration(
                 defaultValue,
-                hasDefaultAttribute,
                 required,
                 shouldHideInLog,
                 configurationAttribute,
+                overrideSource,
+                overrideKey,
                 fieldInfo);
         }
 
         private static bool TryGet(
-            Dictionary<string, string> argsDict, 
+            Dictionary<string, string> commandLineArgs, 
             string key, 
             string alias, 
             ConfigurationSources sources, 
             IConfigurationRoot jsonConfiguration, 
             out string value)
         {
-            if (TryGetFromCommandLine(argsDict, key, alias, sources, out value))
+            if (TryGetFromCommandLine(commandLineArgs, key, alias, sources, out value))
             {
                 return true;
             }
@@ -161,7 +178,7 @@ namespace EasyConfig
         }
 
         private static bool TryGetFromCommandLine(
-            Dictionary<string, string> argsDict,
+            Dictionary<string, string> commandLineArgs,
             string key,
             string alias, 
             ConfigurationSources sources,
@@ -169,12 +186,12 @@ namespace EasyConfig
         {
             if (sources.HasFlag(ConfigurationSources.CommandLine))
             {
-                if (argsDict.TryGetValue(key, out val))
+                if (commandLineArgs.TryGetValue(key, out val))
                 {
                     return true;
                 }
 
-                if (argsDict.TryGetValue(alias, out val))
+                if (commandLineArgs.TryGetValue(alias, out val))
                 {
                     return true;
                 }
@@ -198,10 +215,10 @@ namespace EasyConfig
             return false;
         }
 
-        private static Dictionary<string, string> GetArgsDict(string[] args)
+        private static Dictionary<string, string> ProcessCommandLineArguments(string[] args)
         {
             var split = args.Select(x => x.Split('='));
-            var argsDict = new Dictionary<string, string>();
+            var dict = new Dictionary<string, string>();
 
             foreach (var pair in split)
             {
@@ -210,10 +227,10 @@ namespace EasyConfig
                     continue;
                 }
 
-                argsDict[pair[0]] = pair[1];
+                dict[pair[0]] = pair[1];
             }
 
-            return argsDict;
+            return dict;
         }
 
         private static void SetValue<T>(MemberConfiguration member, string value, ref T result) where T : new()
