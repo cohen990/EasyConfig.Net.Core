@@ -52,10 +52,15 @@ namespace EasyConfig.Net.Sample
 
         [JsonConfig("Overridable")]
         [OverriddenBy(ConfigurationSources.CommandLine)]
-        public bool Overridable { get; set; }
+        public bool Overridable;
 
         [JsonConfig("OverridableAlternativeKey")]
         [OverriddenBy(ConfigurationSources.CommandLine, "alternative-key")]
-        public bool OverridableAlternativeKey { get; set; }
+        public string OverridableAlternativeKey { get; set; }
+
+        [JsonConfig("OverridableRequired")]
+        [OverriddenBy(ConfigurationSources.CommandLine, "overridable-required")]
+        [Required]
+        public string OverridableRequired { get; set; }
     }
 }
