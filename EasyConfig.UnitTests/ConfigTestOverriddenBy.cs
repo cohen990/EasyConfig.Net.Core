@@ -42,14 +42,32 @@ namespace EasyConfig.UnitTests
             try
             {
                 var config = Config.Populate<Required>();
-                throw new AssertionException("Config.Populate did not throw a ConfigurationMissingException");
             }
-            catch (ConfigurationMissingException result)
+            catch (OverridableConfigurationMissingException result)
             {
                 Assert.That(result.Message.Contains("CommandLine"), $"'{result.Message}' did not contain 'CommandLine'");
                 Assert.That(result.Message.Contains("JsonConfig"), $"'{result.Message}' did not contain 'JsonConfig'");
+                return;
             }
+            throw new AssertionException("Config.Populate did not throw a OverridableConfigurationMissingException");
+        }
 
+        [Test]
+        public void Populate_RequiredAlternative_Missing_Throws()
+        {
+            try
+            {
+                var config = Config.Populate<RequiredAlternative>();
+            }
+            catch (OverridableConfigurationMissingException result)
+            {
+                Assert.That(result.Message.Contains("CommandLine"), $"'{result.Message}' did not contain 'CommandLine'");
+                Assert.That(result.Message.Contains("JsonConfig"), $"'{result.Message}' did not contain 'JsonConfig'");
+                Assert.That(result.Message.Contains("MissingConfiguration"), $"'{result.Message}' did not contain 'MissingConfiguration'");
+                Assert.That(result.Message.Contains("alternative-also-missing"), $"'{result.Message}' did not contain 'alternative-also-missing'");
+                return;
+            }
+            throw new AssertionException("Config.Populate did not throw a OverridableConfigurationMissingException");
         }
 
         private class IsOverridden
@@ -70,6 +88,13 @@ namespace EasyConfig.UnitTests
         {
             [JsonConfig("MissingConfiguration"), Required]
             [OverriddenBy(ConfigurationSources.CommandLine)]
+            public string Test { get; set; }
+        }
+
+        private class RequiredAlternative
+        {
+            [JsonConfig("MissingConfiguration"), Required]
+            [OverriddenBy(ConfigurationSources.CommandLine, "alternative-also-missing")]
             public string Test { get; set; }
         }
     }

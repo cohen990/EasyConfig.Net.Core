@@ -3,6 +3,6 @@
   "NestedObject": {
     "InConfigJson": "nested-object"
   },
-  "Overridable": "can-be-overridden",
+  "Overridable": true,
   "OverridableAlternativeKey": "can-be-overridden-with-alternative-key"
 }
