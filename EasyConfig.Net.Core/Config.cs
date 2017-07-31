@@ -81,7 +81,12 @@ namespace EasyConfig
                 var sources = member.ConfigurationSources;
                 if (member.IsOverridable)
                 {
-                    sources |= member.OverrideSource;
+                    throw new OverridableConfigurationMissingException(
+                        member.Key,
+                        member.ConfigurationSources,
+                        member.OverrideKey,
+                        member.OverrideSource,
+                        member.MemberType);
                 }
                 throw new ConfigurationMissingException(member.Key, member.MemberType, sources);
             }
@@ -141,6 +146,18 @@ namespace EasyConfig
                 LogConfigurationValue(member.Key, value, member.ShouldHideInLog);
 
                 member.SetValue(result, i);
+            }
+            else if (member.MemberType == typeof(bool))
+            {
+                bool b;
+                if (!bool.TryParse(value, out b))
+                {
+                    throw new ConfigurationTypeException(member.Key, typeof(bool));
+                }
+
+                LogConfigurationValue(member.Key, value, member.ShouldHideInLog);
+
+                member.SetValue(result, b);
             }
             else
             {
