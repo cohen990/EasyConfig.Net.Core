@@ -51,17 +51,17 @@ namespace EasyConfig.Members
                 fieldInfo);
         }
 
-        public List<Member> GetMembers<T>(MemberMaker memberMaker) where T : new()
+        public List<Member> GetMembers<T>() where T : new()
         {
             var allMembers = new List<Member>();
             foreach (var fieldInfo in typeof(T).GetTypeInfo().DeclaredFields)
             {
-                allMembers.Add(memberMaker.Make(fieldInfo));
+                allMembers.Add(Make(fieldInfo));
             }
 
             foreach (var propertyInfo in typeof(T).GetTypeInfo().DeclaredProperties)
             {
-                allMembers.Add(memberMaker.Make(propertyInfo));
+                allMembers.Add(Make(propertyInfo));
             }
 
             return allMembers;

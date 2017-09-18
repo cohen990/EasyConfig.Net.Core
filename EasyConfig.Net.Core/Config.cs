@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using EasyConfig.ConfigurationReaders;
 using EasyConfig.Exceptions;
@@ -9,22 +10,21 @@ namespace EasyConfig
 {
     public class Config
     {
-        private static readonly ConfigurationBuilder Builder;
+        private readonly ConfigurationBuilder _builder;
 
-        static Config()
+        public Config()
         {
-            Builder = new ConfigurationBuilder();
+            _builder = new ConfigurationBuilder();
         }
 
-        public static T Populate<T>(params string[] args) where T : new()
+        public T PopulateClass<T>(params string[] args) where T : new()
         {
             var commandLineReader = new CommandLineReader(args);
             var environmentVariablesReader = new EnvironmentVariablesReader();
-            var jsonFileReader = new JsonFileReader(Builder.Build());
-            var memberMaker = new MemberMaker();
+            var jsonFileReader = new JsonFileReader(_builder.Build());
             var parameters = new T();
 
-            var allMembers = memberMaker.GetMembers<T>(memberMaker);
+            var allMembers = GetAllMembers<T>();
 
             foreach (var member in allMembers.Where(x => x != null))
             {
@@ -34,7 +34,14 @@ namespace EasyConfig
             return parameters;
         }
 
-        private static void GetValueForMember<T>(
+        protected virtual List<Member> GetAllMembers<T>() where T : new()
+        {
+            var memberMaker = new MemberMaker();
+            var allMembers = memberMaker.GetMembers<T>();
+            return allMembers;
+        }
+
+        protected virtual void GetValueForMember<T>(
             Member member,
             CommandLineReader commandLineReader,
             EnvironmentVariablesReader environmentVariablesReader,
@@ -92,7 +99,7 @@ namespace EasyConfig
             }
         }
 
-        private static bool TryGet(
+        private bool TryGet(
             string key,
             string alias,
             ConfigurationSources sources,
@@ -120,7 +127,7 @@ namespace EasyConfig
             return false;
         }
 
-        private static void SetValue<T>(Member member, string value, ref T result) where T : new()
+        private void SetValue<T>(Member member, string value, ref T result) where T : new()
         {
             if (member.MemberType == typeof(Uri))
             {
@@ -131,7 +138,7 @@ namespace EasyConfig
                     throw new ConfigurationTypeException(member.Key, typeof(Uri));
                 }
 
-                LogConfigurationValue(member.Key, value, member.ShouldHideInLog);
+                WriteConfigurationValue(member.Key, value, member.ShouldHideInLog);
 
                 member.SetValue(result, new Uri(value));
             }
@@ -143,7 +150,7 @@ namespace EasyConfig
                     throw new ConfigurationTypeException(member.Key, typeof(int));
                 }
 
-                LogConfigurationValue(member.Key, value, member.ShouldHideInLog);
+                WriteConfigurationValue(member.Key, value, member.ShouldHideInLog);
 
                 member.SetValue(result, i);
             }
@@ -155,36 +162,36 @@ namespace EasyConfig
                     throw new ConfigurationTypeException(member.Key, typeof(bool));
                 }
 
-                LogConfigurationValue(member.Key, value, member.ShouldHideInLog);
+                WriteConfigurationValue(member.Key, value, member.ShouldHideInLog);
 
                 member.SetValue(result, b);
             }
             else
             {
-                LogConfigurationValue(member.Key, value, member.ShouldHideInLog);
+                WriteConfigurationValue(member.Key, value, member.ShouldHideInLog);
 
                 member.SetValue(result, value);
             }
         }
 
-        private static void LogConfigurationValue(string key, string value, bool shouldHideInLog)
+        protected void WriteConfigurationValue(string key, string value, bool shouldHideInLog)
         {
             if (shouldHideInLog)
             {
                 value = new string('*', value.Length);
             }
 
-            Log($"Using '{value}' for '{key}'");
+            WriteLine($"Using '{value}' for '{key}'");
         }
 
-        private static void Log(string content)
+        protected void WriteLine(string content)
         {
             Console.WriteLine(content);
         }
 
-        public static void UseJson(string path)
+        public void UseJson(string path)
         {
-            Builder.AddJsonFile(path);
+            _builder.AddJsonFile(path);
         }
     }
 }
