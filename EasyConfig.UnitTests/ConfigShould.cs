@@ -1,10 +1,8 @@
 using System;
 using EasyConfig.Attributes;
 using EasyConfig.Exceptions;
-using EasyConfig.Members;
 using NSubstitute;
 using NUnit.Framework;
-#pragma warning disable 649
 
 namespace EasyConfig.UnitTests
 {
@@ -193,6 +191,26 @@ namespace EasyConfig.UnitTests
             _config.PopulateClass<WithSensitiveInformation>($"property={value}");
             _writer.Received().ObfuscateConfigurationValue("property", value);
         }
+
+        [Test]
+        public void Ignore_Environment_If_Command_Line_Collides_With_It()
+        {
+            var value = "from-command-line";
+            var result = _config.PopulateClass<CollidingWithEnvironmentVariable>(
+                $"{EnvironmentVariableTestKey}={value}");
+            
+            Assert.That(result.Test, Is.EqualTo(value));
+        }
+
+        [Test]
+        public void Ignore_Json_If_Command_Line_Collides_With_It()
+        {
+            var value = "from-command-line";
+            var result = _config.PopulateClass<CollidingWithJsonConfig>(
+                $"InConfigJson={value}");
+            
+            Assert.That(result.Test, Is.EqualTo(value));
+        }
         
         private class WithAnAliasDefined
         {
@@ -226,13 +244,6 @@ namespace EasyConfig.UnitTests
             public string Test { get; set; }
         }
 
-        private class WhichHasARequiredProperty
-        {
-            [JsonConfig("MissingConfiguration"), Required]
-            [OverriddenBy(ConfigurationSources.CommandLine)]
-            public string Test { get; set; }
-        }
-
         private class WhichHasARequiredPropertyWithAnAlias
         {
             [JsonConfig("MissingConfiguration"), Required]
@@ -255,6 +266,18 @@ namespace EasyConfig.UnitTests
         private class PopulatedByEnvironmentVariables
         {
             [Environment(EnvironmentVariableTestKey), Required]
+            public string Test;
+        }
+
+        private class CollidingWithEnvironmentVariable
+        {
+            [CommandLine(EnvironmentVariableTestKey)]
+            public string Test;
+        }
+
+        private class CollidingWithJsonConfig
+        {
+            [CommandLine("InConfigJson")]
             public string Test;
         }
 

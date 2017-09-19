@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace EasyConfig.ConfigurationReaders
 {
-    public class JsonFileReader : IConfigurationReader
+    public class JsonFileReader : ConfigurationReader
     {
         private readonly IConfigurationRoot _config;
 
@@ -12,22 +12,23 @@ namespace EasyConfig.ConfigurationReaders
             _config = config;
         }
 
-        public bool TryGet(string key, string alias, ConfigurationSources sources, out string value)
+        public bool TryGet(string key, string alias, out string value)
         {
-            if (sources.HasFlag(ConfigurationSources.JsonConfig))
+            try
             {
-                try
-                {
-                    value = _config[key];
-                    return !string.IsNullOrWhiteSpace(value);
-                }
-                catch
-                {
-                }
+                value = _config[key];
+                return !string.IsNullOrWhiteSpace(value);
             }
-
+            catch
+            {
+            }
             value = "";
             return false;
+        }
+
+        public bool CanBeUsedToReadFrom(ConfigurationSources sources)
+        {
+            return sources.HasFlag(ConfigurationSources.JsonConfig);
         }
     }
 }

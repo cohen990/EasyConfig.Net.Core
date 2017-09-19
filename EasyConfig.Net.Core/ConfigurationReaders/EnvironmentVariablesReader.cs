@@ -1,19 +1,23 @@
-﻿using System;
-
-namespace EasyConfig.ConfigurationReaders
+﻿namespace EasyConfig.ConfigurationReaders
 {
-    public class EnvironmentVariablesReader : IConfigurationReader
+    public class EnvironmentVariablesReader : ConfigurationReader
     {
-        public bool TryGet(string key, string alias, ConfigurationSources sources, out string value)
-        {
-            if (sources.HasFlag(ConfigurationSources.Environment))
-            {
-                value = Environment.GetEnvironmentVariable(key);
-                return !string.IsNullOrWhiteSpace(value);
-            }
+        private readonly EnvironmentWrapper _environment;
 
-            value = "";
-            return false;
+        public EnvironmentVariablesReader(EnvironmentWrapper environment)
+        {
+            _environment = environment;
+        }
+
+        public bool TryGet(string key, string alias, out string value)
+        {
+            value = _environment.GetEnvironmentVariable(key);
+            return !string.IsNullOrWhiteSpace(value);
+        }
+
+        public bool CanBeUsedToReadFrom(ConfigurationSources sources)
+        {
+            return sources.HasFlag(ConfigurationSources.EnvironmentVariables);
         }
     }
 }
