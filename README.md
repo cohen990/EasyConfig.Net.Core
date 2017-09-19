@@ -36,3 +36,8 @@ Easily manage configuration within your .net core application
 ### Coming Soon
 
 * Other missing parameter types
+
+# Things you need to know about versions
+
+## V3
+Has been upgraded to support dotnet core 2.0
