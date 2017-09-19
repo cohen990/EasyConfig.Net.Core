@@ -12,13 +12,15 @@ namespace EasyConfig.ConfigurationReaders
             _commandLineArguments = GetArgsDict(args);
         }
 
-        public bool TryGet(string key, out string value)
+        public string Get(string key)
         {
+            var value = "";
             if (_commandLineArguments.TryGetValue(key, out value))
-                return true;
+            {
+                return value;
+            }
             
-            value = "";
-            return false;
+            return "";
         }
 
         public bool CanBeUsedToReadFrom(ConfigurationSources sources)

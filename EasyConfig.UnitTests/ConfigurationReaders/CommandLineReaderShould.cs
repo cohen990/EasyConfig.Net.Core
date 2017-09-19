@@ -33,8 +33,7 @@ namespace EasyConfig.UnitTests.ConfigurationReaders
             
             var reader = new CommandLineReader(new []{$"{givenKey}={givenValue}"});
 
-            var result = "";
-            reader.TryGet(givenKey, out result);
+            var result = reader.Get(givenKey);
             Assert.That(result, Is.EqualTo(givenValue));
         }
 
@@ -46,8 +45,7 @@ namespace EasyConfig.UnitTests.ConfigurationReaders
             
             var reader = new CommandLineReader(new []{$"{GetAUniqueString()}={givenValue}"});
 
-            var result = "";
-            reader.TryGet(givenKey, out result);
+            var result = reader.Get(givenKey);
             
             Assert.That(result, Is.Empty);
         }

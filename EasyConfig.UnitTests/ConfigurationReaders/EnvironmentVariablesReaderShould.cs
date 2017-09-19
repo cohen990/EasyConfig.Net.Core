@@ -40,10 +40,10 @@ namespace EasyConfig.UnitTests.ConfigurationReaders
         {
             var givenKey = GetAUniqueString();
             var environmentVariable = GetAUniqueString();
-            _environment.GetEnvironmentVariable(givenKey).Returns(environmentVariable);
+            _environment.GetEnvironmentVariable(givenKey)
+                .Returns(environmentVariable);
             
-            string result = "";
-            _environmentVariablesReader.TryGet(givenKey, out result);
+            string result = _environmentVariablesReader.Get(givenKey);
             
             Assert.That(result, Is.EqualTo(environmentVariable));
         }
@@ -54,8 +54,7 @@ namespace EasyConfig.UnitTests.ConfigurationReaders
             var givenKey = GetAUniqueString();
             var environmentVariable = GetAUniqueString();
             
-            string result = "";
-            _environmentVariablesReader.TryGet(givenKey, out result);
+            string result = _environmentVariablesReader.Get(givenKey);
             
             Assert.That(result, Is.Empty);
         }
