@@ -12,24 +12,6 @@ namespace EasyConfig.ConfigurationReaders
             _commandLineArguments = GetArgsDict(args);
         }
 
-        public Dictionary<string, string> GetArgsDict(string[] args)
-        {
-            var split = args.Select(x => x.Split('='));
-            var argsDict = new Dictionary<string, string>();
-
-            foreach (var pair in split)
-            {
-                if (pair.Length != 2)
-                {
-                    continue;
-                }
-
-                argsDict[pair[0]] = pair[1];
-            }
-
-            return argsDict;
-        }
-
         public bool TryGet(string key, string alias, out string value)
         {
             if (_commandLineArguments.TryGetValue(key, out value))
@@ -49,6 +31,32 @@ namespace EasyConfig.ConfigurationReaders
         public bool CanBeUsedToReadFrom(ConfigurationSources sources)
         {
             return sources.HasFlag(ConfigurationSources.CommandLine);
+        }
+
+        private Dictionary<string, string> GetArgsDict(string[] args)
+        {
+            var keyValuePairs = GetKeyValuePairs(args);
+
+            return GetArgumentsDictionary(keyValuePairs);
+        }
+
+        private static Dictionary<string, string> GetArgumentsDictionary(IEnumerable<KeyValuePair<string, string>> keyValuePairs)
+        {
+            var argsDict = new Dictionary<string, string>();
+
+            foreach (var pair in keyValuePairs)
+                argsDict.Add(pair.Key, pair.Value);
+            
+            return argsDict;
+        }
+
+        private static IEnumerable<KeyValuePair<string, string>> GetKeyValuePairs(string[] args)
+        {
+            var keyValuePairs = args
+                .Select(x => x.Split('='))
+                .Where(x => x.Length == 2)
+                .Select(x => new KeyValuePair<string, string>(x[0], x[1]));
+            return keyValuePairs;
         }
     }
 }
