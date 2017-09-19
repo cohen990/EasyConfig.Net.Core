@@ -11,12 +11,18 @@ namespace EasyConfig.UnitTests
     {
         private const string EnvironmentVariableTestKey = "EasyConfig_this_environment_variable_should_only_exist_during_these_tests";
         private Config _config;
+        private Config _fakeConfig;
+        private static bool _writeWasCalled = false;
+        private static WrittenConfigArgs _writtenConfigArgs = null;
 
         [SetUp]
         public void SetUp()
         {
             Environment.SetEnvironmentVariable(EnvironmentVariableTestKey, Guid.NewGuid().ToString());
             _config = new Config();
+            _fakeConfig = new FakeConfig();
+            _writeWasCalled = false;
+            _writtenConfigArgs = null;
         }
 
         [TearDown]
@@ -148,6 +154,61 @@ namespace EasyConfig.UnitTests
 
             Assert.That(config.Test, Is.EqualTo("nested-object"));
         }
+
+        [Test]
+        public void Write_The_Discovered_Configuration_When_Populating_A_String()
+        {
+            var value = "config-value";
+            _fakeConfig.PopulateClass<WithAString>($"property={value}");
+            Assert.True(_writeWasCalled);
+            Assert.That(_writtenConfigArgs.Key, Is.EqualTo("property"));
+            Assert.That(_writtenConfigArgs.Value, Is.EqualTo(value));
+            Assert.That(_writtenConfigArgs.ShouldHideInLog, Is.EqualTo(false));
+        }
+
+        [Test]
+        public void Write_The_Discovered_Configuration_When_Populating_An_Int()
+        {
+            var value = 1;
+            _fakeConfig.PopulateClass<WithAnInt>($"property={value}");
+            Assert.True(_writeWasCalled);
+            Assert.That(_writtenConfigArgs.Key, Is.EqualTo("property"));
+            Assert.That(_writtenConfigArgs.Value, Is.EqualTo(value.ToString()));
+            Assert.That(_writtenConfigArgs.ShouldHideInLog, Is.EqualTo(false));
+        }
+
+        [Test]
+        public void Write_The_Discovered_Configuration_When_Populating_A_Bool()
+        {
+            var value = true;
+            _fakeConfig.PopulateClass<WithABool>($"property={value}");
+            Assert.True(_writeWasCalled);
+            Assert.That(_writtenConfigArgs.Key, Is.EqualTo("property"));
+            Assert.That(_writtenConfigArgs.Value, Is.EqualTo(value.ToString()));
+            Assert.That(_writtenConfigArgs.ShouldHideInLog, Is.EqualTo(false));
+        }
+
+        [Test]
+        public void Write_The_Discovered_Configuration_When_Populating_A_Uri()
+        {
+            var value = "https://www.google.com";
+            _fakeConfig.PopulateClass<WithAUri>($"property={value}");
+            Assert.True(_writeWasCalled);
+            Assert.That(_writtenConfigArgs.Key, Is.EqualTo("property"));
+            Assert.That(_writtenConfigArgs.Value, Is.EqualTo(value));
+            Assert.That(_writtenConfigArgs.ShouldHideInLog, Is.EqualTo(false));
+        }
+
+        [Test]
+        public void Obfuscate_The_Configuration_When_Writing_A_Value_Should_Be_Hidden()
+        {
+            var value = "https://www.google.com";
+            _fakeConfig.PopulateClass<WithSensitiveInformation>($"property={value}");
+            Assert.True(_writeWasCalled);
+            Assert.That(_writtenConfigArgs.Key, Is.EqualTo("property"));
+            Assert.That(_writtenConfigArgs.Value, Is.EqualTo(value));
+            Assert.That(_writtenConfigArgs.ShouldHideInLog, Is.EqualTo(true));
+        }
         
         private class WithAnAliasDefined
         {
@@ -224,11 +285,65 @@ namespace EasyConfig.UnitTests
             [Environment("shouldnt_be_in_environment_variables")]
             public string Test;
         }
-
+        
         private class WhichHasADefaultValue
         {
             [Environment("shouldnt_be_in_environment_variables"), Default("defaulttest")]
             public string Test;
+        }
+
+        private class WithAString
+        {
+            [CommandLine("property")]
+            public string Test;
+        }
+
+        private class WithABool
+        {
+            [CommandLine("property")]
+            public bool Test;
+        }
+
+        private class WithAnInt
+        {
+            [CommandLine("property")]
+            public int Test;
+        }
+
+        private class WithAUri
+        {
+            [CommandLine("property")]
+            public Uri Test;
+        }
+
+        private class WithSensitiveInformation
+        {
+            [CommandLine("property"), SensitiveInformation]
+            public string Test;
+        }
+
+        private class FakeConfig : Config
+        {
+            protected override void WriteConfigurationValue(string key, string value, bool shouldHideInLog)
+            {
+                _writeWasCalled = true;
+                _writtenConfigArgs = new WrittenConfigArgs(key, value, shouldHideInLog);
+                base.WriteConfigurationValue(key, value, shouldHideInLog);
+            }
+        }
+
+        private class WrittenConfigArgs
+        {
+            public readonly string Key;
+            public readonly string Value;
+            public readonly bool ShouldHideInLog;
+
+            public WrittenConfigArgs(string key, string value, bool shouldHideInLog)
+            {
+                Key = key;
+                Value = value;
+                ShouldHideInLog = shouldHideInLog;
+            }
         }
     }
 }
