@@ -12,7 +12,7 @@ namespace EasyConfig.ConfigurationReaders
             _jsonConfig = jsonConfig;
         }
 
-        public bool TryGet(string key, string alias, out string value)
+        public bool TryGet(string key, out string value)
         {
             try
             {

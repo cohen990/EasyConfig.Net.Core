@@ -12,17 +12,10 @@ namespace EasyConfig.ConfigurationReaders
             _commandLineArguments = GetArgsDict(args);
         }
 
-        public bool TryGet(string key, string alias, out string value)
+        public bool TryGet(string key, out string value)
         {
             if (_commandLineArguments.TryGetValue(key, out value))
-            {
                 return true;
-            }
-
-            if (_commandLineArguments.TryGetValue(alias, out value))
-            {
-                return true;
-            }
             
             value = "";
             return false;
@@ -35,9 +28,7 @@ namespace EasyConfig.ConfigurationReaders
 
         private Dictionary<string, string> GetArgsDict(string[] args)
         {
-            var keyValuePairs = GetKeyValuePairs(args);
-
-            return GetArgumentsDictionary(keyValuePairs);
+            return GetArgumentsDictionary(GetKeyValuePairs(args));
         }
 
         private static Dictionary<string, string> GetArgumentsDictionary(IEnumerable<KeyValuePair<string, string>> keyValuePairs)
@@ -52,11 +43,10 @@ namespace EasyConfig.ConfigurationReaders
 
         private static IEnumerable<KeyValuePair<string, string>> GetKeyValuePairs(string[] args)
         {
-            var keyValuePairs = args
+            return args
                 .Select(x => x.Split('='))
                 .Where(x => x.Length == 2)
                 .Select(x => new KeyValuePair<string, string>(x[0], x[1]));
-            return keyValuePairs;
         }
     }
 }

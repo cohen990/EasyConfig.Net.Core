@@ -46,7 +46,7 @@ namespace EasyConfig.UnitTests.ConfigurationReaders
 
             _configurationRoot[providedKey].Returns(providedValue);
             
-            _jsonConfigReader.TryGet(providedKey, providedValue, out result);
+            _jsonConfigReader.TryGet(providedKey, out result);
             
             Assert.That(result, Is.EqualTo(providedValue));
         }
@@ -63,7 +63,7 @@ namespace EasyConfig.UnitTests.ConfigurationReaders
                 var temp = x[providedKey];
             }).Do(x => throw new KeyNotFoundException());
             
-            _jsonConfigReader.TryGet(providedKey, providedValue, out result);
+            _jsonConfigReader.TryGet(providedKey, out result);
             
             Assert.That(result, Is.Empty);
         }
