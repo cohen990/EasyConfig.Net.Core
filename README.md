@@ -40,4 +40,4 @@ Easily manage configuration within your .net core application
 # Things you need to know about versions
 
 ## V3
-Has been upgraded to support dotnet core 2.0
+Has been upgraded to dotnet core 2.0
