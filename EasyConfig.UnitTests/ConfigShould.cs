@@ -9,7 +9,8 @@ namespace EasyConfig.UnitTests
     [TestFixture]
     public class ConfigShould
     {
-        private const string EnvironmentVariableTestKey = "EasyConfig_this_environment_variable_should_only_exist_during_these_tests";
+        private const string EnvironmentVariableTestKey = 
+            "EasyConfig_this_environment_variable_should_only_exist_during_these_tests";
 
         private Config _config;
         private Writer _writer;
@@ -18,7 +19,9 @@ namespace EasyConfig.UnitTests
         public void SetUp()
         {
             _writer = Substitute.For<Writer>();
-            Environment.SetEnvironmentVariable(EnvironmentVariableTestKey, Guid.NewGuid().ToString());
+            Environment.SetEnvironmentVariable(
+                EnvironmentVariableTestKey,
+                Guid.NewGuid().ToString());
             _config = new Config(_writer);
         }
 
@@ -47,7 +50,8 @@ namespace EasyConfig.UnitTests
         [Test]
         public void Fail_If_Given_A_Property_With_A_Private_Setter()
         {
-            Assert.Throws<ConfigurationPropertyException>(() => _config.PopulateClass<WithAPrivateSetter>("property=value"));
+            Assert.Throws<ConfigurationPropertyException>(() =>
+                _config.PopulateClass<WithAPrivateSetter>("property=value"));
         }
 
         [Test]
@@ -72,7 +76,9 @@ namespace EasyConfig.UnitTests
         [Test]
         public void Fail_If_Key_Is_Not_In_Environment_Variables()
         {
-            Assert.Throws<ConfigurationMissingException>(() => _config.PopulateClass<TargettingNonExistentEnvironmentVariable>("defninitely_not_in_environment_variables=shouldstillthrow"));
+            Assert.Throws<ConfigurationMissingException>(() => 
+                _config.PopulateClass<TargettingNonExistentEnvironmentVariable>(
+                    "defninitely_not_in_environment_variables=shouldstillthrow"));
         }
 
         [Test]
@@ -102,7 +108,8 @@ namespace EasyConfig.UnitTests
         public void Populate_An_Overridable_Property_With_Override_If_Available()
         {
             _config.UseJson("config.json");
-            var config = _config.PopulateClass<WhichHasAnOverridableProperty>("InConfigJson=overriden");
+            var config =
+                _config.PopulateClass<WhichHasAnOverridableProperty>("InConfigJson=overriden");
 
             Assert.That(config.Test, Is.EqualTo("overriden"));
         }
@@ -111,7 +118,9 @@ namespace EasyConfig.UnitTests
         public void Populate_A_Property_Overriden_With_An_Alias()
         {
             _config.UseJson("config.json");
-            var config = _config.PopulateClass<WhichHasAPropertyWithAnAlias>("alternative_key=overriden");
+            var config =
+                _config.PopulateClass<WhichHasAPropertyOverriddenWithAnAlias>(
+                    "alternative_key=overriden");
 
             Assert.That(config.Test, Is.EqualTo("overriden"));
         }
@@ -125,13 +134,18 @@ namespace EasyConfig.UnitTests
             }
             catch (OverridableConfigurationMissingException result)
             {
-                Assert.That(result.Message.Contains("CommandLine"), $"'{result.Message}' did not contain 'CommandLine'");
-                Assert.That(result.Message.Contains("JsonConfig"), $"'{result.Message}' did not contain 'JsonConfig'");
-                Assert.That(result.Message.Contains("MissingConfiguration"), $"'{result.Message}' did not contain 'MissingConfiguration'");
-                Assert.That(result.Message.Contains("alternative-also-missing"), $"'{result.Message}' did not contain 'alternative-also-missing'");
+                Assert.That(result.Message.Contains("CommandLine"),
+                    $"'{result.Message}' did not contain 'CommandLine'");
+                Assert.That(result.Message.Contains("JsonConfig"),
+                    $"'{result.Message}' did not contain 'JsonConfig'");
+                Assert.That(result.Message.Contains("MissingConfiguration"),
+                    $"'{result.Message}' did not contain 'MissingConfiguration'");
+                Assert.That(result.Message.Contains("alternative-also-missing"),
+                    $"'{result.Message}' did not contain 'alternative-also-missing'");
                 return;
             }
-            throw new AssertionException("Config.Populate did not throw a OverridableConfigurationMissingException");
+            throw new AssertionException(
+                "Config.Populate did not throw a OverridableConfigurationMissingException");
         }
 
         [Test]
@@ -237,7 +251,7 @@ namespace EasyConfig.UnitTests
             public string Test { get; set; }
         }
 
-        private class WhichHasAPropertyWithAnAlias
+        private class WhichHasAPropertyOverriddenWithAnAlias
         {
             [JsonConfig("InConfigJson")]
             [OverriddenBy(ConfigurationSources.CommandLine, "alternative_key")]
