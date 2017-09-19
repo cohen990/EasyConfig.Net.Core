@@ -42,11 +42,11 @@ namespace EasyConfig.UnitTests.ConfigurationReaders
         {
             string providedValue = GetAUniqueString();
             string providedKey = GetAUniqueString();
-            string result = "";
 
-            _configurationRoot[providedKey].Returns(providedValue);
+            _configurationRoot[providedKey]
+                .Returns(providedValue);
             
-            _jsonConfigReader.TryGet(providedKey, out result);
+            var result = _jsonConfigReader.Get(providedKey);
             
             Assert.That(result, Is.EqualTo(providedValue));
         }
@@ -56,16 +56,19 @@ namespace EasyConfig.UnitTests.ConfigurationReaders
         {
             string providedValue = GetAUniqueString();
             string providedKey = GetAUniqueString();
-            string result = "";
 
-            _configurationRoot.When(x =>
-            {
-                var temp = x[providedKey];
-            }).Do(x => throw new KeyNotFoundException());
+            _configurationRoot
+                .When(x => { CallsIndexer(x, providedKey); })
+                .Do(x => throw new KeyNotFoundException());
             
-            _jsonConfigReader.TryGet(providedKey, out result);
+            var result = _jsonConfigReader.Get(providedKey);
             
             Assert.That(result, Is.Empty);
+        }
+
+        private static void CallsIndexer(IConfigurationRoot x, string providedKey)
+        {
+            var temp = x[providedKey];
         }
 
         private string GetAUniqueString()

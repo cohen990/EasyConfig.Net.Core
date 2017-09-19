@@ -9,10 +9,9 @@
             _environment = environment;
         }
 
-        public bool TryGet(string key, out string value)
+        public string Get(string key)
         {
-            value = _environment.GetEnvironmentVariable(key);
-            return !string.IsNullOrWhiteSpace(value);
+            return _environment.GetEnvironmentVariable(key);
         }
 
         public bool CanBeUsedToReadFrom(ConfigurationSources sources)

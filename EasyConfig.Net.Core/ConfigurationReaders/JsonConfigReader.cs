@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 
 namespace EasyConfig.ConfigurationReaders
@@ -12,18 +13,16 @@ namespace EasyConfig.ConfigurationReaders
             _jsonConfig = jsonConfig;
         }
 
-        public bool TryGet(string key, out string value)
+        public string Get(string key)
         {
             try
             {
-                value = _jsonConfig[key];
-                return !string.IsNullOrWhiteSpace(value);
+                return _jsonConfig[key];
             }
-            catch
+            catch (KeyNotFoundException e)
             {
+                return "";
             }
-            value = "";
-            return false;
         }
 
         public bool CanBeUsedToReadFrom(ConfigurationSources sources)

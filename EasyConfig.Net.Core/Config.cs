@@ -121,8 +121,8 @@ namespace EasyConfig
                 if (!reader.CanBeUsedToReadFrom(sources))
                     continue;
 
-                if (reader.TryGet(key, out value))
-                    return true;
+                value = reader.Get(key);
+                return !string.IsNullOrWhiteSpace(value);
             }
 
             value = "";
