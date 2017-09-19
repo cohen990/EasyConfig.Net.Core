@@ -31,7 +31,7 @@ namespace EasyConfig
             {
                 new CommandLineReader(args),
                 new EnvironmentVariablesReader(new SystemEnvironmentWrapper()),
-                new JsonFileReader(JsonConfigurationFiles())
+                new JsonConfigReader(JsonConfigurationFiles())
             };
             
             var parameters = new T();
