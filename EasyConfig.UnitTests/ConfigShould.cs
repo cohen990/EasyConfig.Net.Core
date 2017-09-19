@@ -13,11 +13,8 @@ namespace EasyConfig.UnitTests
     {
         private const string EnvironmentVariableTestKey = "EasyConfig_this_environment_variable_should_only_exist_during_these_tests";
 
-        private Config _fakeConfig;
         private Config _config;
         private Writer _writer;
-
-        private static bool _setStringWasCalled;
         
         [SetUp]
         public void SetUp()
@@ -25,8 +22,6 @@ namespace EasyConfig.UnitTests
             _writer = Substitute.For<Writer>();
             Environment.SetEnvironmentVariable(EnvironmentVariableTestKey, Guid.NewGuid().ToString());
             _config = new Config(_writer);
-            _fakeConfig = new FakeConfig(_writer);
-            _setStringWasCalled = false;
         }
 
         [TearDown]
@@ -309,13 +304,6 @@ namespace EasyConfig.UnitTests
         {
             [CommandLine("property"), SensitiveInformation]
             public string Test;
-        }
-
-        private class FakeConfig : Config
-        {
-            public FakeConfig(Writer writer) : base(writer)
-            {
-            }
         }
     }
 }

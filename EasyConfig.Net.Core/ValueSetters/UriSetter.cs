@@ -13,7 +13,7 @@ namespace EasyConfig.ValueSetters
             _uriToSet = uriToSet;
         }
 
-        public void SetTo<T>(Member member, T result)
+        public override void SetTo<T>(Member member, T result)
         {
             member.SetValue(result, ExtractUri(member, _uriToSet));
         }

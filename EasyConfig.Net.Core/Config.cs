@@ -132,28 +132,16 @@ namespace EasyConfig
 
         private void SetValue<T>(Member member, string value, ref T result) where T : new()
         {
-            if (member.MemberType == typeof(Uri))
-            {
-                new UriSetter(value).SetTo(member, result);
-            }
-            else if (member.MemberType == typeof(int))
-            {
-                new IntSetter(value).SetTo(member, result);
-            }
-            else if (member.MemberType == typeof(bool))
-            {
-                new BoolSetter(value).SetTo(member, result);
-            }
-            else
-            {
-                new StringSetter(value).SetTo(member, result);
-            }
+            var setter = ValueSetter.GetAppropriateSetter(member, value);
+                
+            setter.SetTo(member, result);
 
             if (member.ShouldHideInLog)
             {
                 _writer.ObfuscateConfigurationValue(member.Key, value);
                 return;
             }
+            
             _writer.WriteConfigurationValue(member.Key, value);
         }
 

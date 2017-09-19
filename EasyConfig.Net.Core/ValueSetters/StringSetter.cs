@@ -11,7 +11,7 @@ namespace EasyConfig.ValueSetters
             _valueToSet = valueToSet;
         }
 
-        public void SetTo<T>(Member member, T result)
+        public override void SetTo<T>(Member member, T result)
         {
             member.SetValue(result, _valueToSet);
         }
