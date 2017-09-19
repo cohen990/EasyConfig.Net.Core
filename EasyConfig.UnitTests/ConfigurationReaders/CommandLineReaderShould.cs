@@ -12,7 +12,7 @@ namespace EasyConfig.UnitTests.ConfigurationReaders
         [TestCase(EnvironmentVariables, false)]
         [TestCase(JsonConfig, false)]
         [TestCase(EnvironmentVariables | JsonConfig, false)]
-        [TestCase(CommandLine | CommandLine, true)]
+        [TestCase(CommandLine | EnvironmentVariables, true)]
         [TestCase(CommandLine | JsonConfig, true)]
         [TestCase(CommandLine | EnvironmentVariables | JsonConfig, true)]
         public void Only_Claim_To_Be_Useful_If_In_Sources(
@@ -26,7 +26,7 @@ namespace EasyConfig.UnitTests.ConfigurationReaders
         }
         
         [Test]
-        public void Return_Value()
+        public void Return_Value_Provided_In_Args()
         {
             string givenValue = GetAUniqueString();
             string givenKey = GetAUniqueString();
@@ -36,6 +36,20 @@ namespace EasyConfig.UnitTests.ConfigurationReaders
             var result = "";
             reader.TryGet(givenKey, "alias", out result);
             Assert.That(result, Is.EqualTo(givenValue));
+        }
+
+        [Test]
+        public void Return_Empty_If_Value_Not_Found()
+        {
+            string givenValue = GetAUniqueString();
+            string givenKey = GetAUniqueString();
+            
+            var reader = new CommandLineReader(new []{$"{GetAUniqueString()}={givenValue}"});
+
+            var result = "";
+            reader.TryGet(givenKey, "alias", out result);
+            
+            Assert.That(result, Is.Empty);
         }
 
         private static string GetAUniqueString()

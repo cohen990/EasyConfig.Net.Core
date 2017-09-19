@@ -3,20 +3,20 @@ using Microsoft.Extensions.Configuration;
 
 namespace EasyConfig.ConfigurationReaders
 {
-    public class JsonFileReader : ConfigurationReader
+    public class JsonConfigReader : ConfigurationReader
     {
-        private readonly IConfigurationRoot _config;
+        private readonly IConfigurationRoot _jsonConfig;
 
-        public JsonFileReader(IConfigurationRoot config)
+        public JsonConfigReader(IConfigurationRoot jsonConfig)
         {
-            _config = config;
+            _jsonConfig = jsonConfig;
         }
 
         public bool TryGet(string key, string alias, out string value)
         {
             try
             {
-                value = _config[key];
+                value = _jsonConfig[key];
                 return !string.IsNullOrWhiteSpace(value);
             }
             catch

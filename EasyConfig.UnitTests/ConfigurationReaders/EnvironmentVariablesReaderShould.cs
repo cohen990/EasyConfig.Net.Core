@@ -38,14 +38,31 @@ namespace EasyConfig.UnitTests.ConfigurationReaders
         [Test]
         public void Return_The_Environment_Variable()
         {
-            var givenKey = Guid.NewGuid().ToString();
-            var environmentVariable = Guid.NewGuid().ToString();
+            var givenKey = GetAUniqueString();
+            var environmentVariable = GetAUniqueString();
             _environment.GetEnvironmentVariable(givenKey).Returns(environmentVariable);
             
             string result = "";
             _environmentVariablesReader.TryGet(givenKey, "alias", out result);
             
             Assert.That(result, Is.EqualTo(environmentVariable));
+        }
+
+        [Test]
+        public void Return_Empty_When_Value_Is_Not_Found()
+        {
+            var givenKey = GetAUniqueString();
+            var environmentVariable = GetAUniqueString();
+            
+            string result = "";
+            _environmentVariablesReader.TryGet(givenKey, "alias", out result);
+            
+            Assert.That(result, Is.Empty);
+        }
+
+        private static string GetAUniqueString()
+        {
+            return Guid.NewGuid().ToString();
         }
     }
 }
