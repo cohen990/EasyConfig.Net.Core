@@ -20,18 +20,27 @@ namespace EasyConfig
             _builder = new ConfigurationBuilder();
         }
 
+        public void UseJson(string path)
+        {
+            _builder.AddJsonFile(path);
+        }
+
         public T PopulateClass<T>(params string[] args) where T : new()
         {
-            var commandLineReader = new CommandLineReader(args);
-            var environmentVariablesReader = new EnvironmentVariablesReader();
-            var jsonFileReader = new JsonFileReader(_builder.Build());
+            var readers = new ConfigurationReader[]
+            {
+                new CommandLineReader(args),
+                new EnvironmentVariablesReader(new SystemEnvironmentWrapper()),
+                new JsonFileReader(JsonConfigurationFiles())
+            };
+            
             var parameters = new T();
 
             var allMembers = GetAllMembers<T>();
 
             foreach (var member in allMembers.Where(x => x != null))
             {
-                GetValueForMember(member, commandLineReader, environmentVariablesReader, jsonFileReader, ref parameters);
+                GetValueForMember(member, readers, ref parameters);
             }
 
             return parameters;
@@ -46,9 +55,7 @@ namespace EasyConfig
 
         protected virtual void GetValueForMember<T>(
             Member member,
-            CommandLineReader commandLineReader,
-            EnvironmentVariablesReader environmentVariablesReader,
-            JsonFileReader jsonFileReader,
+            ConfigurationReader[] readers,
             ref T parameters) where T : new()
         {
             string value;
@@ -57,9 +64,7 @@ namespace EasyConfig
                 if (TryGet(member.OverrideKey ?? member.Key,
                     "",
                     member.OverrideSource,
-                    commandLineReader,
-                    environmentVariablesReader,
-                    jsonFileReader,
+                    readers,
                     out value))
                 {
                     SetValue(member, value, ref parameters);
@@ -71,9 +76,7 @@ namespace EasyConfig
                 member.Key,
                 member.Alias,
                 member.ConfigurationSources,
-                commandLineReader,
-                environmentVariablesReader,
-                jsonFileReader,
+                readers,
                 out value))
             {
                 SetValue(member, value, ref parameters);
@@ -106,24 +109,16 @@ namespace EasyConfig
             string key,
             string alias,
             ConfigurationSources sources,
-            CommandLineReader commandLineReader,
-            EnvironmentVariablesReader environmentVariablesReader,
-            JsonFileReader jsonFileReader,
+            ConfigurationReader[] readers,
             out string value)
         {
-            if (commandLineReader.TryGet(key, alias, sources, out value))
+            foreach (var reader in readers)
             {
-                return true;
-            }
+                if (!reader.CanBeUsedToReadFrom(sources))
+                    continue;
 
-            if (environmentVariablesReader.TryGet(key, alias, sources, out value))
-            {
-                return true;
-            }
-
-            if (jsonFileReader.TryGet(key, alias, sources, out value))
-            {
-                return true;
+                if (reader.TryGet(key, alias, out value))
+                    return true;
             }
 
             value = "";
@@ -145,9 +140,9 @@ namespace EasyConfig
             _writer.WriteConfigurationValue(member.Key, value);
         }
 
-        public void UseJson(string path)
+        private IConfigurationRoot JsonConfigurationFiles()
         {
-            _builder.AddJsonFile(path);
+            return _builder.Build();
         }
     }
 }

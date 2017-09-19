@@ -43,11 +43,11 @@ namespace EasyConfig.UnitTests.Exceptions
         [Test]
         public void ctor_GivenMultipleLocations_IncludesAllInErrorMessage()
         {
-            var location = ConfigurationSources.CommandLine | ConfigurationSources.Environment;
+            var location = ConfigurationSources.CommandLine | ConfigurationSources.EnvironmentVariables;
             var result = new ConfigurationMissingException(null, null, location).Message;
 
             Assert.That(result, Does.Contain(ConfigurationSources.CommandLine.ToString()));
-            Assert.That(result, Does.Contain(ConfigurationSources.Environment.ToString()));
+            Assert.That(result, Does.Contain(ConfigurationSources.EnvironmentVariables.ToString()));
         }
     }
 }

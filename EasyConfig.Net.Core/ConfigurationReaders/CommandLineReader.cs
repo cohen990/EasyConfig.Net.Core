@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace EasyConfig.ConfigurationReaders
 {
-    public class CommandLineReader : IConfigurationReader
+    public class CommandLineReader : ConfigurationReader
     {
         private readonly Dictionary<string, string> _commandLineArguments;
 
@@ -30,23 +30,25 @@ namespace EasyConfig.ConfigurationReaders
             return argsDict;
         }
 
-
-        public bool TryGet(string key, string alias, ConfigurationSources sources, out string value)
+        public bool TryGet(string key, string alias, out string value)
         {
-            if (sources.HasFlag(ConfigurationSources.CommandLine))
+            if (_commandLineArguments.TryGetValue(key, out value))
             {
-                if (_commandLineArguments.TryGetValue(key, out value))
-                {
-                    return true;
-                }
-
-                if (_commandLineArguments.TryGetValue(alias, out value))
-                {
-                    return true;
-                }
+                return true;
             }
+
+            if (_commandLineArguments.TryGetValue(alias, out value))
+            {
+                return true;
+            }
+            
             value = "";
             return false;
+        }
+
+        public bool CanBeUsedToReadFrom(ConfigurationSources sources)
+        {
+            return sources.HasFlag(ConfigurationSources.CommandLine);
         }
     }
 }
