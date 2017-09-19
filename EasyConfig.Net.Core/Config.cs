@@ -168,13 +168,19 @@ namespace EasyConfig
             }
             else
             {
-                WriteConfigurationValue(member.Key, value, member.ShouldHideInLog);
 
                 member.SetValue(result, value);
             }
+            
+            WriteConfigurationValue(member.Key, value, member.ShouldHideInLog);
         }
 
-        protected void WriteConfigurationValue(string key, string value, bool shouldHideInLog)
+        public void UseJson(string path)
+        {
+            _builder.AddJsonFile(path);
+        }
+
+        protected virtual void WriteConfigurationValue(string key, string value, bool shouldHideInLog)
         {
             if (shouldHideInLog)
             {
@@ -184,14 +190,9 @@ namespace EasyConfig
             WriteLine($"Using '{value}' for '{key}'");
         }
 
-        protected void WriteLine(string content)
+        protected virtual void WriteLine(string content)
         {
             Console.WriteLine(content);
-        }
-
-        public void UseJson(string path)
-        {
-            _builder.AddJsonFile(path);
         }
     }
 }
