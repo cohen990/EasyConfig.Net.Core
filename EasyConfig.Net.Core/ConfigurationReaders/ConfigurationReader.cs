@@ -2,7 +2,7 @@
 {
     public interface ConfigurationReader
     {
-        bool TryGet(string key, string alias, out string value);
+        bool TryGet(string key, out string value);
         bool CanBeUsedToReadFrom(ConfigurationSources sources);
     }
 }

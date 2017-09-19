@@ -62,7 +62,6 @@ namespace EasyConfig
             if (member.IsOverridable)
             {
                 if (TryGet(member.OverrideKey ?? member.Key,
-                    "",
                     member.OverrideSource,
                     readers,
                     out value))
@@ -71,10 +70,20 @@ namespace EasyConfig
                     return;
                 }
             }
-
+            if (member.HasAlias)
+            {
+                if (TryGet(
+                    member.Alias,
+                    member.ConfigurationSources,
+                    readers,
+                    out value))
+                {
+                    SetValue(member, value, ref parameters);
+                    return;
+                }
+            }
             if (TryGet(
                 member.Key,
-                member.Alias,
                 member.ConfigurationSources,
                 readers,
                 out value))
@@ -105,19 +114,14 @@ namespace EasyConfig
             }
         }
 
-        private bool TryGet(
-            string key,
-            string alias,
-            ConfigurationSources sources,
-            ConfigurationReader[] readers,
-            out string value)
+        private bool TryGet(string key, ConfigurationSources sources, ConfigurationReader[] readers, out string value)
         {
             foreach (var reader in readers)
             {
                 if (!reader.CanBeUsedToReadFrom(sources))
                     continue;
 
-                if (reader.TryGet(key, alias, out value))
+                if (reader.TryGet(key, out value))
                     return true;
             }
 

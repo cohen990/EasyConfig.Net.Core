@@ -43,7 +43,7 @@ namespace EasyConfig.UnitTests.ConfigurationReaders
             _environment.GetEnvironmentVariable(givenKey).Returns(environmentVariable);
             
             string result = "";
-            _environmentVariablesReader.TryGet(givenKey, "alias", out result);
+            _environmentVariablesReader.TryGet(givenKey, out result);
             
             Assert.That(result, Is.EqualTo(environmentVariable));
         }
@@ -55,7 +55,7 @@ namespace EasyConfig.UnitTests.ConfigurationReaders
             var environmentVariable = GetAUniqueString();
             
             string result = "";
-            _environmentVariablesReader.TryGet(givenKey, "alias", out result);
+            _environmentVariablesReader.TryGet(givenKey, out result);
             
             Assert.That(result, Is.Empty);
         }

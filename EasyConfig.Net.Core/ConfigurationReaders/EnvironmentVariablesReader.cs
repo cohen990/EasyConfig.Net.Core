@@ -9,7 +9,7 @@
             _environment = environment;
         }
 
-        public bool TryGet(string key, string alias, out string value)
+        public bool TryGet(string key, out string value)
         {
             value = _environment.GetEnvironmentVariable(key);
             return !string.IsNullOrWhiteSpace(value);
