@@ -4,16 +4,19 @@ using System.Linq;
 using EasyConfig.ConfigurationReaders;
 using EasyConfig.Exceptions;
 using EasyConfig.Members;
+using EasyConfig.ValueSetters;
 using Microsoft.Extensions.Configuration;
 
 namespace EasyConfig
 {
     public class Config
     {
+        private readonly Writer _writer;
         private readonly ConfigurationBuilder _builder;
 
-        public Config()
+        public Config(Writer writer)
         {
+            _writer = writer;
             _builder = new ConfigurationBuilder();
         }
 
@@ -131,68 +134,32 @@ namespace EasyConfig
         {
             if (member.MemberType == typeof(Uri))
             {
-                Uri uri;
-
-                if (!Uri.TryCreate(value, UriKind.Absolute, out uri))
-                {
-                    throw new ConfigurationTypeException(member.Key, typeof(Uri));
-                }
-
-                WriteConfigurationValue(member.Key, value, member.ShouldHideInLog);
-
-                member.SetValue(result, new Uri(value));
+                new UriSetter(value).SetTo(member, result);
             }
             else if (member.MemberType == typeof(int))
             {
-                int i;
-                if (!int.TryParse(value, out i))
-                {
-                    throw new ConfigurationTypeException(member.Key, typeof(int));
-                }
-
-                WriteConfigurationValue(member.Key, value, member.ShouldHideInLog);
-
-                member.SetValue(result, i);
+                new IntSetter(value).SetTo(member, result);
             }
             else if (member.MemberType == typeof(bool))
             {
-                bool b;
-                if (!bool.TryParse(value, out b))
-                {
-                    throw new ConfigurationTypeException(member.Key, typeof(bool));
-                }
-
-                WriteConfigurationValue(member.Key, value, member.ShouldHideInLog);
-
-                member.SetValue(result, b);
+                new BoolSetter(value).SetTo(member, result);
             }
             else
             {
-
-                member.SetValue(result, value);
+                new StringSetter(value).SetTo(member, result);
             }
-            
-            WriteConfigurationValue(member.Key, value, member.ShouldHideInLog);
+
+            if (member.ShouldHideInLog)
+            {
+                _writer.ObfuscateConfigurationValue(member.Key, value);
+                return;
+            }
+            _writer.WriteConfigurationValue(member.Key, value);
         }
 
         public void UseJson(string path)
         {
             _builder.AddJsonFile(path);
-        }
-
-        protected virtual void WriteConfigurationValue(string key, string value, bool shouldHideInLog)
-        {
-            if (shouldHideInLog)
-            {
-                value = new string('*', value.Length);
-            }
-
-            WriteLine($"Using '{value}' for '{key}'");
-        }
-
-        protected virtual void WriteLine(string content)
-        {
-            Console.WriteLine(content);
         }
     }
 }
