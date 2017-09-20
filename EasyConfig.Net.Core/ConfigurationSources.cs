@@ -5,7 +5,7 @@ namespace EasyConfig
     [Flags]
     public enum ConfigurationSources
     {
-        Environment= 1,
+        EnvironmentVariables= 1,
         CommandLine = 2,
         JsonConfig = 4
     }

@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace EasyConfig.ConfigurationReaders
 {
-    public class CommandLineReader : IConfigurationReader
+    public class CommandLineReader : ConfigurationReader
     {
         private readonly Dictionary<string, string> _commandLineArguments;
 
@@ -12,41 +12,43 @@ namespace EasyConfig.ConfigurationReaders
             _commandLineArguments = GetArgsDict(args);
         }
 
-        public Dictionary<string, string> GetArgsDict(string[] args)
+        public string Get(string key)
         {
-            var split = args.Select(x => x.Split('='));
+            var value = "";
+            if (_commandLineArguments.TryGetValue(key, out value))
+            {
+                return value;
+            }
+            
+            return "";
+        }
+
+        public bool CanBeUsedToReadFrom(ConfigurationSources sources)
+        {
+            return sources.HasFlag(ConfigurationSources.CommandLine);
+        }
+
+        private Dictionary<string, string> GetArgsDict(string[] args)
+        {
+            return GetArgumentsDictionary(GetKeyValuePairs(args));
+        }
+
+        private static Dictionary<string, string> GetArgumentsDictionary(IEnumerable<KeyValuePair<string, string>> keyValuePairs)
+        {
             var argsDict = new Dictionary<string, string>();
 
-            foreach (var pair in split)
-            {
-                if (pair.Length != 2)
-                {
-                    continue;
-                }
-
-                argsDict[pair[0]] = pair[1];
-            }
-
+            foreach (var pair in keyValuePairs)
+                argsDict.Add(pair.Key, pair.Value);
+            
             return argsDict;
         }
 
-
-        public bool TryGet(string key, string alias, ConfigurationSources sources, out string value)
+        private static IEnumerable<KeyValuePair<string, string>> GetKeyValuePairs(string[] args)
         {
-            if (sources.HasFlag(ConfigurationSources.CommandLine))
-            {
-                if (_commandLineArguments.TryGetValue(key, out value))
-                {
-                    return true;
-                }
-
-                if (_commandLineArguments.TryGetValue(alias, out value))
-                {
-                    return true;
-                }
-            }
-            value = "";
-            return false;
+            return args
+                .Select(x => x.Split('='))
+                .Where(x => x.Length == 2)
+                .Select(x => new KeyValuePair<string, string>(x[0], x[1]));
         }
     }
 }

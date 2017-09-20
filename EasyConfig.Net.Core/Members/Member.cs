@@ -40,6 +40,7 @@ namespace EasyConfig.Members
         public ConfigurationSources ConfigurationSources { get; set; }
 
         public bool HasDefault => DefaultValue != null;
+        public bool HasAlias => !string.IsNullOrWhiteSpace(Alias);
 
         public abstract void SetValue(object instance, object value);
     }

@@ -43,12 +43,12 @@ namespace EasyConfig.UnitTests.Exceptions
         [Test]
         public void ctor_GivenMultipleSources_IncludesAllInErrorMessage()
         {
-            var sources = ConfigurationSources.CommandLine | ConfigurationSources.Environment;
+            var sources = ConfigurationSources.CommandLine | ConfigurationSources.EnvironmentVariables;
 
             var result = new OverridableConfigurationMissingException(null, sources, null, 0, null).Message;
 
             Assert.That(result, Does.Contain(ConfigurationSources.CommandLine.ToString()));
-            Assert.That(result, Does.Contain(ConfigurationSources.Environment.ToString()));
+            Assert.That(result, Does.Contain(ConfigurationSources.EnvironmentVariables.ToString()));
         }
 
         [Test]
@@ -63,12 +63,12 @@ namespace EasyConfig.UnitTests.Exceptions
         [Test]
         public void ctor_GivenOverrideSources_IncludesAllInErrorMessage()
         {
-            var sources = ConfigurationSources.CommandLine | ConfigurationSources.Environment;
+            var sources = ConfigurationSources.CommandLine | ConfigurationSources.EnvironmentVariables;
 
             var result = new OverridableConfigurationMissingException(null, 0, null, sources, null).Message;
 
             Assert.That(result, Does.Contain(ConfigurationSources.CommandLine.ToString()));
-            Assert.That(result, Does.Contain(ConfigurationSources.Environment.ToString()));
+            Assert.That(result, Does.Contain(ConfigurationSources.EnvironmentVariables.ToString()));
         }
     }
 }
