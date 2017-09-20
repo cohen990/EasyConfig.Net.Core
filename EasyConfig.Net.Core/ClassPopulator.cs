@@ -11,17 +11,17 @@ namespace EasyConfig
     public class ClassPopulator<T> where T : new()
     {
         private readonly Writer _writer;
-        private readonly ConfigurationBuilder _builder;
+        private readonly IConfigurationRoot _configuration;
         private T _toPopulate;
 
         public ClassPopulator()
         {
         }
 
-        public ClassPopulator(Writer writer, ConfigurationBuilder builder)
+        public ClassPopulator(Writer writer, IConfigurationRoot configuration)
         {
             _writer = writer;
-            _builder = builder;
+            _configuration = configuration;
             _toPopulate = new T();
         }
 
@@ -29,9 +29,9 @@ namespace EasyConfig
         {
             var readers = new ConfigurationReader[]
             {
-                new CommandLineReader(args),
                 new EnvironmentVariablesReader(new SystemEnvironmentWrapper()),
-                new JsonConfigReader(JsonConfigurationFiles())
+                new JsonConfigReader(_configuration),
+                new CommandLineReader(args),
             };
             
             var allMembers = GetAllMembers();
@@ -51,10 +51,10 @@ namespace EasyConfig
             return allMembers;
         }
 
-        protected virtual void GetValueForMember<T>(
+        protected virtual void GetValueForMember(
             Member member,
             ConfigurationReader[] readers,
-            ref T toPopulate) where T : new()
+            ref T toPopulate)
         {
             string value;
             if (member.IsOverridable)
@@ -65,7 +65,7 @@ namespace EasyConfig
                     readers,
                     out value))
                 {
-                    SetValue(member, value, ref toPopulate);
+                    SetValue(member, value, toPopulate);
                     return;
                 }
             }
@@ -77,7 +77,7 @@ namespace EasyConfig
                     readers,
                     out value))
                 {
-                    SetValue(member, value, ref toPopulate);
+                    SetValue(member, value, toPopulate);
                     return;
                 }
             }
@@ -87,13 +87,13 @@ namespace EasyConfig
                 readers,
                 out value))
             {
-                SetValue(member, value, ref toPopulate);
+                SetValue(member, value, toPopulate);
                 return;
             }
 
             if (member.HasDefault)
             {
-                SetValue(member, member.DefaultValue.ToString(), ref toPopulate);
+                SetValue(member, member.DefaultValue.ToString(), toPopulate);
                 return;
             }
 
@@ -101,6 +101,49 @@ namespace EasyConfig
             {
                 Fail(member);
             }
+        }
+
+        private bool TryGet(
+            string key,
+            ConfigurationSources sources,
+            ConfigurationReader[] readers,
+            out string value)
+        {
+            foreach (var reader in readers)
+            {
+                if (!reader.CanBeUsedToReadFrom(sources))
+                    continue;
+                
+                value = reader.Get(key);
+
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    return true;
+                }
+            }
+
+            value = "";
+            return false;
+        }
+
+        private void SetValue(Member member, string value, T toPopulate)
+        {
+            var setter = ValueSetter.GetAppropriateSetter(member, value);
+                
+            setter.SetTo(member, toPopulate);
+
+            WriteValue(member, value);
+        }
+
+        private void WriteValue(Member member, string value)
+        {
+            if (member.ShouldHideInLog)
+            {
+                _writer.ObfuscateConfigurationValue(member.Key, value);
+                return;
+            }
+
+            _writer.WriteConfigurationValue(member.Key, value);
         }
 
         private static void Fail(Member member)
@@ -119,45 +162,6 @@ namespace EasyConfig
                 member.Key,
                 member.MemberType,
                 member.ConfigurationSources);
-        }
-
-        private bool TryGet(
-            string key,
-            ConfigurationSources sources,
-            ConfigurationReader[] readers,
-            out string value)
-        {
-            foreach (var reader in readers)
-            {
-                if (!reader.CanBeUsedToReadFrom(sources))
-                    continue;
-
-                value = reader.Get(key);
-                return !string.IsNullOrWhiteSpace(value);
-            }
-
-            value = "";
-            return false;
-        }
-
-        private void SetValue<T>(Member member, string value, ref T toPopulate) where T : new()
-        {
-            var setter = ValueSetter.GetAppropriateSetter(member, value);
-                
-            setter.SetTo(member, toPopulate);
-
-            if (member.ShouldHideInLog)
-            {
-                _writer.ObfuscateConfigurationValue(member.Key, value);
-                return;
-            }
-            
-            _writer.WriteConfigurationValue(member.Key, value);
-        }
-
-        private IConfigurationRoot JsonConfigurationFiles()
-        {
-            return _builder.Build();
         }
     }
 }

@@ -1,4 +1,6 @@
 ﻿using System;
+using EasyConfig.Attributes;
+using EasyConfig.Exceptions;
 
 namespace EasyConfig.Net.Sample
 {

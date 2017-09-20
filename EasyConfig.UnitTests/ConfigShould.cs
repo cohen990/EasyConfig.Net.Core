@@ -130,7 +130,7 @@ namespace EasyConfig.UnitTests
         {
             try
             {
-                var config = _config.PopulateClass<WhichHasARequiredPropertyWithAnAlias>();
+                _config.PopulateClass<WhichHasARequiredPropertyWithAnAlias>();
             }
             catch (OverridableConfigurationMissingException result)
             {
