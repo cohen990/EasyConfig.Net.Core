@@ -11,12 +11,12 @@ namespace EasyConfig
         
         public void ObfuscateConfigurationValue(string key, string value)
         {
-            var obfuscatedValue = new string('*', value.Length);
+            var obfuscatedValue = new string('*', 10);
 
-            WriteLine($"Using '{value}' for '{key}'");
+            WriteLine($"Using '{obfuscatedValue}' for '{key}'");
         }
 
-        private void WriteLine(string content)
+        protected virtual void WriteLine(string content)
         {
             Console.WriteLine(content);
         }
