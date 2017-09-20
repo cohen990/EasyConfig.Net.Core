@@ -1,190 +1,41 @@
-﻿using System;
-using System.Linq;
-using EasyConfig.ConfigurationReaders;
-using EasyConfig.Exceptions;
-using EasyConfig.Members;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 
 namespace EasyConfig
 {
     public class Config
     {
-        private static readonly ConfigurationBuilder Builder;
+        private readonly Writer _writer;
+        private readonly ConfigurationBuilder _builder;
+        private static Config _config;
 
-        static Config()
+        public Config(Writer writer)
         {
-            Builder = new ConfigurationBuilder();
+            _writer = writer;
+            _builder = new ConfigurationBuilder();
+        }
+
+        public void WithJson(string path)
+        {
+            _builder.AddJsonFile(path);
+        }
+
+        public T PopulateClass<T>(params string[] args) where T : new()
+        {
+            return new ClassPopulator<T>(_writer, _builder.Build()).PopulateClass(args);
         }
 
         public static T Populate<T>(params string[] args) where T : new()
         {
-            var commandLineReader = new CommandLineReader(args);
-            var environmentVariablesReader = new EnvironmentVariablesReader();
-            var jsonFileReader = new JsonFileReader(Builder.Build());
-            var memberMaker = new MemberMaker();
-            var parameters = new T();
-
-            var allMembers = memberMaker.GetMembers<T>(memberMaker);
-
-            foreach (var member in allMembers.Where(x => x != null))
-            {
-                GetValueForMember(member, commandLineReader, environmentVariablesReader, jsonFileReader, ref parameters);
-            }
-
-            return parameters;
-        }
-
-        private static void GetValueForMember<T>(
-            Member member,
-            CommandLineReader commandLineReader,
-            EnvironmentVariablesReader environmentVariablesReader,
-            JsonFileReader jsonFileReader,
-            ref T parameters) where T : new()
-        {
-            string value;
-            if (member.IsOverridable)
-            {
-                if (TryGet(member.OverrideKey ?? member.Key,
-                    "",
-                    member.OverrideSource,
-                    commandLineReader,
-                    environmentVariablesReader,
-                    jsonFileReader,
-                    out value))
-                {
-                    SetValue(member, value, ref parameters);
-                    return;
-                }
-            }
-
-            if (TryGet(
-                member.Key,
-                member.Alias,
-                member.ConfigurationSources,
-                commandLineReader,
-                environmentVariablesReader,
-                jsonFileReader,
-                out value))
-            {
-                SetValue(member, value, ref parameters);
-                return;
-            }
-
-            if (member.HasDefault)
-            {
-                SetValue(member, member.DefaultValue.ToString(), ref parameters);
-                return;
-            }
-
-            if (member.IsRequired)
-            {
-                var sources = member.ConfigurationSources;
-                if (member.IsOverridable)
-                {
-                    throw new OverridableConfigurationMissingException(
-                        member.Key,
-                        member.ConfigurationSources,
-                        member.OverrideKey,
-                        member.OverrideSource,
-                        member.MemberType);
-                }
-                throw new ConfigurationMissingException(member.Key, member.MemberType, sources);
-            }
-        }
-
-        private static bool TryGet(
-            string key,
-            string alias,
-            ConfigurationSources sources,
-            CommandLineReader commandLineReader,
-            EnvironmentVariablesReader environmentVariablesReader,
-            JsonFileReader jsonFileReader,
-            out string value)
-        {
-            if (commandLineReader.TryGet(key, alias, sources, out value))
-            {
-                return true;
-            }
-
-            if (environmentVariablesReader.TryGet(key, alias, sources, out value))
-            {
-                return true;
-            }
-
-            if (jsonFileReader.TryGet(key, alias, sources, out value))
-            {
-                return true;
-            }
-
-            value = "";
-            return false;
-        }
-
-        private static void SetValue<T>(Member member, string value, ref T result) where T : new()
-        {
-            if (member.MemberType == typeof(Uri))
-            {
-                Uri uri;
-
-                if (!Uri.TryCreate(value, UriKind.Absolute, out uri))
-                {
-                    throw new ConfigurationTypeException(member.Key, typeof(Uri));
-                }
-
-                LogConfigurationValue(member.Key, value, member.ShouldHideInLog);
-
-                member.SetValue(result, new Uri(value));
-            }
-            else if (member.MemberType == typeof(int))
-            {
-                int i;
-                if (!int.TryParse(value, out i))
-                {
-                    throw new ConfigurationTypeException(member.Key, typeof(int));
-                }
-
-                LogConfigurationValue(member.Key, value, member.ShouldHideInLog);
-
-                member.SetValue(result, i);
-            }
-            else if (member.MemberType == typeof(bool))
-            {
-                bool b;
-                if (!bool.TryParse(value, out b))
-                {
-                    throw new ConfigurationTypeException(member.Key, typeof(bool));
-                }
-
-                LogConfigurationValue(member.Key, value, member.ShouldHideInLog);
-
-                member.SetValue(result, b);
-            }
-            else
-            {
-                LogConfigurationValue(member.Key, value, member.ShouldHideInLog);
-
-                member.SetValue(result, value);
-            }
-        }
-
-        private static void LogConfigurationValue(string key, string value, bool shouldHideInLog)
-        {
-            if (shouldHideInLog)
-            {
-                value = new string('*', value.Length);
-            }
-
-            Log($"Using '{value}' for '{key}'");
-        }
-
-        private static void Log(string content)
-        {
-            Console.WriteLine(content);
+            return _config.PopulateClass<T>(args);
         }
 
         public static void UseJson(string path)
         {
-            Builder.AddJsonFile(path);
+            var config = new Config(new ConsoleWriter());
+
+            config.WithJson(path);
+
+            _config = config;
         }
     }
 }

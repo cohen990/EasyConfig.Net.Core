@@ -9,6 +9,6 @@ script:
   - dotnet test
   - cd ../EasyConfig.Net.Core
   - dotnet restore
-  - dotnet pack -o . /p:Version=3.0.$TRAVIS_BUILD_NUMBER
+  - dotnet pack -o . /p:Version=4.0.$TRAVIS_BUILD_NUMBER
   - if [ "$TRAVIS_BRANCH" != "master" ]; then travis_terminate $TRAVIS_TEST_RESULT; fi;
   - dotnet nuget push EasyConfig.Net.Core.*.nupkg -k $NugetApiKey -s https://www.nuget.org/
