@@ -39,5 +39,10 @@ Easily manage configuration within your .net core application
 
 # Things you need to know about versions
 
+## V4
+Cannot guarantee that the internal functionality remains the same. Large refactors of the internal code have taken place and efforts have been taken to preserve the original contract, but the risk of some nuanced detail changing forces me to update the major version number again.
+
+The old contract is still honoured, but if you have been relying on a quirk of the library then I cannot guarantee that it will still operate the same way.
+
 ## V3
 Has been upgraded to dotnet core 2.0
