@@ -8,10 +8,12 @@ namespace EasyConfig.Net.Sample
     {
         static void Main(string[] args)
         {
-            Config.UseJson("config.json");
+            var writer = new ConsoleWriter();
+            var config = new Config(writer);
+            config.WithJson("config.json");
             try
             {
-                var config = Config.Populate<SampleConfig>(args);
+                var configurationValues = config.PopulateClass<SampleConfig>(args);
             }
             catch (EasyConfigException e)
             {
