@@ -98,7 +98,7 @@ namespace EasyConfig.UnitTests
         [Test]
         public void Populate_An_Overridable_Property_Normally_If_Not_Overridden()
         {
-            _config.UseJson("config.json");
+            _config.WithJson("config.json");
             var config = _config.PopulateClass<WhichHasAnOverridableProperty>();
 
             Assert.That(config.Test, Is.EqualTo("in-config-json"));
@@ -107,7 +107,7 @@ namespace EasyConfig.UnitTests
         [Test]
         public void Populate_An_Overridable_Property_With_Override_If_Available()
         {
-            _config.UseJson("config.json");
+            _config.WithJson("config.json");
             var config =
                 _config.PopulateClass<WhichHasAnOverridableProperty>("InConfigJson=overriden");
 
@@ -117,7 +117,7 @@ namespace EasyConfig.UnitTests
         [Test]
         public void Populate_A_Property_Overriden_With_An_Alias()
         {
-            _config.UseJson("config.json");
+            _config.WithJson("config.json");
             var config =
                 _config.PopulateClass<WhichHasAPropertyOverriddenWithAnAlias>(
                     "alternative_key=overriden");
@@ -151,7 +151,7 @@ namespace EasyConfig.UnitTests
         [Test]
         public void Populate_A_Class_Using_Provided_Json()
         {
-            _config.UseJson("config.json");
+            _config.WithJson("config.json");
             var config = _config.PopulateClass<WhichIsPopulatedFromJson>();
 
             Assert.That(config.Test, Is.EqualTo("in-config-json"));
@@ -160,7 +160,7 @@ namespace EasyConfig.UnitTests
         [Test]
         public void Read_Correctly_From_A_Nested_Json_Object()
         {
-            _config.UseJson("config.json");
+            _config.WithJson("config.json");
             var config = _config.PopulateClass<WhichIsPopulatedByANestedJsonObject>();
 
             Assert.That(config.Test, Is.EqualTo("nested-object"));
