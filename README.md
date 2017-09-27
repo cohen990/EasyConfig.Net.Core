@@ -2,7 +2,7 @@
 
 Easily manage configuration within your .net core application
 
-![Build Status](https://travis-ci.org/cohen990/EasyConfig.Net.Core.svg?branch=master)
+[![Build Status](https://travis-ci.org/cohen990/EasyConfig.Net.Core.svg?branch=master)](https://www.travis-ci.org/cohen990/EasyConfig.Net.Core)
 
 [![NuGet Version and Downloads count](https://buildstats.info/nuget/EasyConfig.Net.Core)](https://www.nuget.org/packages/EasyConfig.Net.Core)
 
