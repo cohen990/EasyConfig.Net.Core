@@ -64,5 +64,8 @@ namespace EasyConfig.Net.Sample
         [OverriddenBy(ConfigurationSources.CommandLine, "overridable-required")]
         [Required]
         public string OverridableRequired { get; set; }
+
+        [CommandLine("day-of-week"), Required]
+        public DayOfWeek EnumExample { get; set; }
     }
 }

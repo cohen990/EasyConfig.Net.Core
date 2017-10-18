@@ -13,7 +13,7 @@ Easily manage configuration within your .net core application
 - cd to working directory
 - `cd EasyConfig.Net.Sample`
 - `dotnet restore`
-- `dotnet run uri_required=http://www.google.com string_required_commandline=string1 string_sensitive_required=sensitiveinformation overridable-required=overriden-in-command-line`
+- `dotnet run uri_required=http://www.google.com string_required_commandline=string1 string_sensitive_required=sensitiveinformation overridable-required=overriden-in-command-line day-of-week=tuesday`
 
 ## Run the Tests
 - cd to working directory
@@ -27,6 +27,7 @@ Easily manage configuration within your .net core application
 	* Uri
 	* String
 	* Int
+	* Enums (case insensitive)
 * Configuration Sources
 	* Environment Variables
 	* Command Line Arguments

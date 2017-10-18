@@ -225,7 +225,54 @@ namespace EasyConfig.UnitTests
             
             Assert.That(result.Test, Is.EqualTo(value));
         }
-        
+
+        [Test]
+        public void Set_An_Enum()
+        {
+            var result = _config.PopulateClass<WithEnum>("property=value");
+
+            Assert.That(result.Test, Is.EqualTo(MyEnum.value));
+        }
+
+        [Test]
+        public void Set_An_Enum_Which_Is_Not_Default_Value_Of_Enum()
+        {
+            var result = _config.PopulateClass<WithEnum>("property=otherValue");
+
+            Assert.That(result.Test, Is.EqualTo(MyEnum.otherValue));
+        }
+
+        [Test]
+        public void Fail_If_Value_Doesnt_Match_Enum()
+        {
+            var value = "notanenumvalue";
+            try
+            {
+                var result = _config.PopulateClass<WithEnum>($"property={value}");
+            }
+            catch (EnumConfigParseException e)
+            {
+                Assert.That(e.Message, Does.Contain(typeof(MyEnum).ToString()));
+                Assert.That(e.Message, Does.Contain(value));
+            }
+        }
+
+        [Test]
+        public void Set_A_Day_Of_Week()
+        {
+            var result = _config.PopulateClass<WithDayOfWeek>("property=Wednesday");
+
+            Assert.That(result.Test, Is.EqualTo(DayOfWeek.Wednesday));
+        }
+
+        [Test]
+        public void Set_An_Enum_Case_Insensitively()
+        {
+            var result = _config.PopulateClass<WithDayOfWeek>("property=wednesday");
+
+            Assert.That(result.Test, Is.EqualTo(DayOfWeek.Wednesday));
+        }
+
         private class WithAnAliasDefined
         {
             [CommandLine("unaliased", "a")]
@@ -341,6 +388,25 @@ namespace EasyConfig.UnitTests
         {
             [CommandLine("property"), SensitiveInformation]
             public string Test;
+        }
+
+        private class WithEnum
+        {
+            [CommandLine("property")]
+            public MyEnum Test;
+
+        }
+
+        private class WithDayOfWeek
+        {
+            [CommandLine("property")]
+            public DayOfWeek Test;
+        }
+
+        public enum MyEnum
+        {
+            value,
+            otherValue
         }
     }
 }
