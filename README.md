@@ -27,6 +27,7 @@ Easily manage configuration within your .net core application
 	* Uri
 	* String
 	* Int
+	* Enums (case insensitive)
 * Configuration Sources
 	* Environment Variables
 	* Command Line Arguments
