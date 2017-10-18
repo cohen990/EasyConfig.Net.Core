@@ -9,6 +9,9 @@ namespace EasyConfig.ValueSetters
 
         public static ValueSetter GetAppropriateSetter(Member member, string value)
         {
+            if (member.MemberType.IsEnum)
+                return new EnumSetter(value);
+
             if (member.MemberType == typeof(Uri))
                 return new UriSetter(value);
 
