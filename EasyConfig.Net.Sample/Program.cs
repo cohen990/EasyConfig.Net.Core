@@ -67,5 +67,13 @@ namespace EasyConfig.Net.Sample
 
         [CommandLine("day-of-week"), Required]
         public DayOfWeek EnumExample { get; set; }
+
+        // will default to (DayOfWeek)0 if not provided
+        [CommandLine("day-of-week-not-required")]
+        public DayOfWeek EnumNotRequiredExample { get; set; }
+
+        // will default to null if not provided
+        [CommandLine("day-of-week-nullable")]
+        public DayOfWeek? NullableEnumExample { get; set; }
     }
 }

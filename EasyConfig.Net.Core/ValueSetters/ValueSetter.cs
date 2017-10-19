@@ -9,6 +9,9 @@ namespace EasyConfig.ValueSetters
 
         public static ValueSetter GetAppropriateSetter(Member member, string value)
         {
+            if (isNullableEnum(member))
+                return new NullableEnumSetter(value);
+
             if (member.MemberType.IsEnum)
                 return new EnumSetter(value);
 
@@ -22,6 +25,12 @@ namespace EasyConfig.ValueSetters
                 return new BoolSetter(value);
 
             return new StringSetter(value);
+        }
+
+        private static bool isNullableEnum(Member member)
+        {
+            var underlyingType = Nullable.GetUnderlyingType(member.MemberType);
+            return underlyingType != null && underlyingType.IsEnum;
         }
     }
 }
