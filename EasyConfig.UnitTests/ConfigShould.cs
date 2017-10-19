@@ -273,6 +273,44 @@ namespace EasyConfig.UnitTests
             Assert.That(result.Test, Is.EqualTo(DayOfWeek.Wednesday));
         }
 
+        [Test]
+        public void Set_Enum_To_Default_If_Not_Provided()
+        {
+            var result = _config.PopulateClass<WithDayOfWeek>("");
+
+            Assert.That(result.Test, Is.EqualTo((DayOfWeek)0));
+        }
+
+        [Test]
+        public void Set_A_Nullable_Enum()
+        {
+            var result = _config.PopulateClass<WithNullableDayOfWeek>("property=wednesday");
+
+            Assert.That(result.Test.Value, Is.EqualTo(DayOfWeek.Wednesday));
+        }
+
+        [Test]
+        public void Fail_If_Value_Doesnt_Match_Nullable_Enum()
+        {
+            var value = "notanenumvalue";
+            try
+            {
+                var result = _config.PopulateClass<WithNullableDayOfWeek>($"property={value}");
+            }
+            catch (EnumConfigParseException e)
+            {
+                Assert.That(e.Message, Does.Contain(typeof(DayOfWeek).ToString()));
+                Assert.That(e.Message, Does.Contain(value));
+            }
+        }
+
+        [Test]
+        public void Default_To_Null_If_Nullable_Enum_Not_Provided()
+        {
+            var result = _config.PopulateClass<WithNullableDayOfWeek>("");
+            Assert.That(result.Test, Is.Null);
+        }
+
         private class WithAnAliasDefined
         {
             [CommandLine("unaliased", "a")]
@@ -293,7 +331,7 @@ namespace EasyConfig.UnitTests
 
         private class WhichHasAnOverridableProperty
         {
-            [JsonConfig("InConfigJson")]
+            [JsonConfig("InConfigJson")]    
             [OverriddenBy(ConfigurationSources.CommandLine)]
             public string Test { get; set; }
         }
@@ -401,6 +439,12 @@ namespace EasyConfig.UnitTests
         {
             [CommandLine("property")]
             public DayOfWeek Test;
+        }
+
+        private class WithNullableDayOfWeek
+        {
+            [CommandLine("property")]
+            public DayOfWeek? Test;
         }
 
         public enum MyEnum
