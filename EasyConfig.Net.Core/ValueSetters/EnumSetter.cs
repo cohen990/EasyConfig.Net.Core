@@ -4,7 +4,19 @@ using System;
 
 namespace EasyConfig.ValueSetters
 {
-    internal class EnumSetter : ValueSetter
+    public class NullableEnumSetter : EnumSetter
+    {
+        public NullableEnumSetter(string value) : base(value)
+        {
+        }
+
+        protected override object ParseEnum(Type nullableEnumType)
+        {
+            return base.ParseEnum(Nullable.GetUnderlyingType(nullableEnumType));
+        }
+    }
+
+    public class EnumSetter : ValueSetter
     {
         private string value;
 
@@ -15,19 +27,19 @@ namespace EasyConfig.ValueSetters
 
         public override void SetTo<T>(Member member, T result)
         {
-            object parseResult = ParseEnum(member);
+            object parseResult = ParseEnum(member.MemberType);
             member.SetValue(result, parseResult);
         }
 
-        private object ParseEnum(Member member)
+        protected virtual object ParseEnum(Type enumType)
         {
             try
             {
-                return Enum.Parse(member.MemberType, value, true);
+                return Enum.Parse(enumType, value, true);
             }
             catch (Exception)
             {
-                throw new EnumConfigParseException(value, member.MemberType);
+                throw new EnumConfigParseException(value, enumType);
             }
         }
     }
