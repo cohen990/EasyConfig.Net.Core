@@ -38,6 +38,21 @@ Easily manage configuration within your .net core application
 
 * Other missing parameter types
 
+### Uri
+Must be an absolute Uri. Throws a ConfigurationTypeException if unable to parse a Uri
+
+### String
+Can be pretty much anything but cannot yet contain spaces
+
+### Int
+Can be an int
+
+### Enums
+Can be any enum - will default to the default value of that enum if it is not provided
+
+### Nullable Enums
+Can be any enum - will default to null if not provided
+
 # Things you need to know about versions
 
 ## V4
