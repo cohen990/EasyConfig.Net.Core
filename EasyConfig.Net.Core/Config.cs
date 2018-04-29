@@ -8,15 +8,16 @@ namespace EasyConfig
         private readonly ConfigurationBuilder _builder;
         private static Config _config;
 
-        public Config(Writer writer)
+        public Config(Writer writer = null)
         {
-            _writer = writer;
+            _writer = writer ?? new ConsoleWriter();
             _builder = new ConfigurationBuilder();
         }
 
-        public void WithJson(string path)
+        public Config WithJson(string path)
         {
             _builder.AddJsonFile(path);
+            return this;
         }
 
         public T PopulateClass<T>(params string[] args) where T : new()
